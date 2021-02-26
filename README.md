@@ -7,7 +7,9 @@ For now, the estimation provided in this plugin is a simple 1 hour timer. Eventu
 
 ## Panel & Overlay:
 ![](panel-example.png)
-![](2021-02-25-21-28-09.png)
+
+![](overlay-example.png)
+
 
 ## Data Points:
 When a random event occurs, multiple data points will be collected. For example:
