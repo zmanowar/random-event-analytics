@@ -15,7 +15,7 @@ import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 
 public class RandomEventRecordBox extends JPanel {
-    private final JComponent panel;
+    private final JComponent parentPanel;
     private final RandomEventAnalyticsPlugin plugin;
     private final JPanel container;
     private JPanel randomEventPanel;
@@ -24,15 +24,15 @@ public class RandomEventRecordBox extends JPanel {
     private RandomEventRecord randomEvent;
     private boolean isConfirmed;
 
-    RandomEventRecordBox(RandomEventAnalyticsPlugin plugin, RandomEventAnalyticsConfig config, Client client, RandomEventAnalyticsPanel analyticsPanel, JComponent panel, RandomEventRecord randomEvent, boolean isConfirmed) {
+    RandomEventRecordBox(RandomEventAnalyticsPlugin plugin, RandomEventAnalyticsConfig config, Client client, RandomEventAnalyticsPanel analyticsPanel, JComponent parentPanel, RandomEventRecord randomEvent, boolean isConfirmed) {
         this.plugin = plugin;
-        this.panel = panel;
+        this.parentPanel = parentPanel;
         this.analyticsPanel = analyticsPanel;
         this.randomEvent = randomEvent;
         this.isConfirmed = isConfirmed;
         this.container = new JPanel();
         this.randomEventPanel = buildRandomPanel(randomEvent);
-        this.panel.add(randomEventPanel, 0);
+        this.parentPanel.add(randomEventPanel, 0);
     }
 
     public JPanel getRandomEventPanel() {
@@ -42,10 +42,9 @@ public class RandomEventRecordBox extends JPanel {
     private void updateConfirmed(boolean confirmed) {
         this.confirmationPanel.removeAll();
         this.container.remove(this.confirmationPanel);
+        analyticsPanel.removeRandomRecordBox(this);
         if (confirmed) {
             plugin.addRandomEvent(randomEvent);
-        } else {
-            analyticsPanel.removeRandomRecordBox(this);
         }
         this.container.revalidate();
         this.container.repaint();

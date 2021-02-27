@@ -12,7 +12,7 @@ import static net.runelite.client.RuneLite.RUNELITE_DIR;
  * TODO: Either break the random events into seperate files
  *  or implement/import a DB system.
  */
-public class RandomEvenAnalyticsLocalStorage {
+public class RandomEventAnalyticsLocalStorage {
     private static final String FILE_EXTENSION = ".log";
     private static final File LOOT_RECORD_DIR = new File(RUNELITE_DIR, "random-event-analytics");
     private static final String RANDOM_EVENTS_FILE = "random-events";
@@ -21,10 +21,10 @@ public class RandomEvenAnalyticsLocalStorage {
     private File playerFolder;
     private String name;
 
-    private static final Logger log = LoggerFactory.getLogger(RandomEvenAnalyticsLocalStorage.class);
+    private static final Logger log = LoggerFactory.getLogger(RandomEventAnalyticsLocalStorage.class);
 
     @Inject
-    public RandomEvenAnalyticsLocalStorage() {
+    public RandomEventAnalyticsLocalStorage() {
         LOOT_RECORD_DIR.mkdir();
     }
 

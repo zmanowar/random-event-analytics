@@ -94,61 +94,61 @@ public class RandomEventAnalyticsUtil {
         switch (id)
         {
             case NpcID.BEE_KEEPER_6747:
-                return new ImageIcon(ImageUtil.getResourceStreamFromClass(RandomEventAnalyticsPlugin.class, "chatheads/bee_keeper.png"));
+                return new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/bee_keeper.png"));
             case NpcID.CAPT_ARNAV:
-                return new ImageIcon(ImageUtil.getResourceStreamFromClass(RandomEventAnalyticsPlugin.class, "chatheads/capt_arnav.png"));
+                return new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/capt_arnav.png"));
             case NpcID.DRUNKEN_DWARF:
-                return new ImageIcon(ImageUtil.getResourceStreamFromClass(RandomEventAnalyticsPlugin.class, "chatheads/drunken_dwarf.png"));
+                return new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/drunken_dwarf.png"));
             case NpcID.FLIPPA_6744:
-                return new ImageIcon(ImageUtil.getResourceStreamFromClass(RandomEventAnalyticsPlugin.class, "chatheads/flippa.png"));
+                return new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/flippa.png"));
             case NpcID.GILES:
             case NpcID.GILES_5441:
-                return new ImageIcon(ImageUtil.getResourceStreamFromClass(RandomEventAnalyticsPlugin.class, "chatheads/giles.png"));
+                return new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/giles.png"));
             case NpcID.MILES:
             case NpcID.MILES_5440:
-                return new ImageIcon(ImageUtil.getResourceStreamFromClass(RandomEventAnalyticsPlugin.class, "chatheads/miles.png"));
+                return new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/miles.png"));
             case NpcID.NILES:
             case NpcID.NILES_5439:
-                return new ImageIcon(ImageUtil.getResourceStreamFromClass(RandomEventAnalyticsPlugin.class, "chatheads/niles.png"));
+                return new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/niles.png"));
             case NpcID.PILLORY_GUARD:
-                return new ImageIcon(ImageUtil.getResourceStreamFromClass(RandomEventAnalyticsPlugin.class, "chatheads/pillory_guard.png"));
+                return new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/pillory_guard.png"));
             case NpcID.POSTIE_PETE_6738:
-                return new ImageIcon(ImageUtil.getResourceStreamFromClass(RandomEventAnalyticsPlugin.class, "chatheads/postie_pete.png"));
+                return new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/postie_pete.png"));
             case NpcID.RICK_TURPENTINE:
             case NpcID.RICK_TURPENTINE_376:
-                return new ImageIcon(ImageUtil.getResourceStreamFromClass(RandomEventAnalyticsPlugin.class, "chatheads/rick_turpentine.png"));
+                return new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/rick_turpentine.png"));
             case NpcID.SERGEANT_DAMIEN_6743:
-                return new ImageIcon(ImageUtil.getResourceStreamFromClass(RandomEventAnalyticsPlugin.class, "chatheads/sergeant_damien.png"));
+                return new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/sergeant_damien.png"));
             case NpcID.FREAKY_FORESTER_6748:
-                return new ImageIcon(ImageUtil.getResourceStreamFromClass(RandomEventAnalyticsPlugin.class, "chatheads/freaky_forester.png"));
+                return new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/freaky_forester.png"));
             case NpcID.FROG_5429:
-                return new ImageIcon(ImageUtil.getResourceStreamFromClass(RandomEventAnalyticsPlugin.class, "chatheads/frog.png"));
+                return new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/frog.png"));
             case NpcID.GENIE:
             case NpcID.GENIE_327:
-                return new ImageIcon(ImageUtil.getResourceStreamFromClass(RandomEventAnalyticsPlugin.class, "chatheads/genie.png"));
+                return new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/genie.png"));
             case NpcID.DR_JEKYLL:
             case NpcID.DR_JEKYLL_314:
-                return new ImageIcon(ImageUtil.getResourceStreamFromClass(RandomEventAnalyticsPlugin.class, "chatheads/dr_jekyll.png"));
+                return new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/dr_jekyll.png"));
             case NpcID.EVIL_BOB:
             case NpcID.EVIL_BOB_6754:
-                return new ImageIcon(ImageUtil.getResourceStreamFromClass(RandomEventAnalyticsPlugin.class, "chatheads/evil_bob.png"));
+                return new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/evil_bob.png"));
             case NpcID.LEO_6746:
-                return new ImageIcon(ImageUtil.getResourceStreamFromClass(RandomEventAnalyticsPlugin.class, "chatheads/leo.png"));
+                return new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/leo.png"));
             case NpcID.MYSTERIOUS_OLD_MAN_6750:
             case NpcID.MYSTERIOUS_OLD_MAN_6751:
             case NpcID.MYSTERIOUS_OLD_MAN_6752:
             case NpcID.MYSTERIOUS_OLD_MAN_6753:
-                return new ImageIcon(ImageUtil.getResourceStreamFromClass(RandomEventAnalyticsPlugin.class, "chatheads/mysterious_old_man.png"));
+                return new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/mysterious_old_man.png"));
             case NpcID.QUIZ_MASTER_6755:
-                return new ImageIcon(ImageUtil.getResourceStreamFromClass(RandomEventAnalyticsPlugin.class, "chatheads/quiz_master.png"));
+                return new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/quiz_master.png"));
             case NpcID.DUNCE_6749:
-                return new ImageIcon(ImageUtil.getResourceStreamFromClass(RandomEventAnalyticsPlugin.class, "chatheads/dunce.png"));
+                return new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/dunce.png"));
             case NpcID.SANDWICH_LADY:
-                return new ImageIcon(ImageUtil.getResourceStreamFromClass(RandomEventAnalyticsPlugin.class, "chatheads/sandwich_lady.png"));
+                return new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/sandwich_lady.png"));
             case NpcID.STRANGE_PLANT:
-                return new ImageIcon(ImageUtil.getResourceStreamFromClass(RandomEventAnalyticsPlugin.class, "chatheads/strange_plant.png"));
+                return new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/strange_plant.png"));
             default:
-                return new ImageIcon(ImageUtil.getResourceStreamFromClass(RandomEventAnalyticsPlugin.class, "chatheads/question_mark.png"));
+                return new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/question_mark.png"));
         }
     }
 }

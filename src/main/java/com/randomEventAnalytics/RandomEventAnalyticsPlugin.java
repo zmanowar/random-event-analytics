@@ -13,6 +13,7 @@ import net.runelite.api.*;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.*;
+import net.runelite.client.Notifier;
 import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.events.ClientShutdown;
@@ -49,7 +50,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	private RandomEventAnalyticsConfig config;
 
 	@Inject
-	private RandomEvenAnalyticsLocalStorage localStorage;
+	private RandomEventAnalyticsLocalStorage localStorage;
 
 	@Inject
 	private ClientToolbar clientToolbar;
@@ -60,12 +61,17 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	@Inject
 	private ChatMessageManager chatMessageManager;
 
+	@Inject
+	private Notifier notifier;
+
 	RandomEventAnalyticsPanel panel;
 
 	private NPC currentRandomEvent;
 	private boolean isLoggedIn = false;
 	private int secondsPerRandomEvent = 60 * 60;
 	private int secondsSinceLastRandomEvent = 0;
+	private static final int RANDOM_EVENT_TIMEOUT = 150;
+	private int lastNotificationTick = -RANDOM_EVENT_TIMEOUT;
 	private NavigationButton navButton;
 
 	@Provides
@@ -93,7 +99,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	@Override
 	protected void shutDown() {
 		currentRandomEvent = null;
-
+		lastNotificationTick = 0;
 		overlayManager.removeIf(e -> e instanceof RandomEventAnalyticsOverlay);
 		clientToolbar.removeNavigation(navButton);
 	}
@@ -116,6 +122,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 			localStorage.setPlayerUsername(client.getUsername());
 			secondsSinceLastRandomEvent = localStorage.loadSecondsSinceLastRandomEvent();
 			loadPreviousRandomEvents();
+
 		}
 		if (state == GameState.CONNECTION_LOST
 				|| state == GameState.HOPPING
@@ -133,9 +140,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		if (randomEvents.size() > 0) {
 			panel.clearEventLog();
 			//Collections.sort(randomEvents, Comparator.comparing(RandomEventRecord::getSpawnedTime).reversed());
-			randomEvents.forEach(record -> {
-				panel.addRandom(record);
-			});
+			randomEvents.forEach(panel::addRandom);
 		} else {
 			panel.setEmptyLog();
 		}
@@ -159,6 +164,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 					.type(ChatMessageType.CONSOLE)
 					.runeLiteFormattedMessage("A Strange Plant has spawned, please visit the Random Event Analytics panel to confirm the random.")
 					.build());
+			notifier.notify("A Strange Plant has spawned, please visit the Random Event Analytics panel to confirm the random.");
 		}
 	}
 
@@ -186,7 +192,15 @@ public class RandomEventAnalyticsPlugin extends Plugin
 			return;
 		}
 		currentRandomEvent = (NPC) source;
-		handleRandomEvent(currentRandomEvent);
+		/**
+		 * This is brought to you by the RandomEventPlugin. It seems sometimes you can
+		 * have multiple notifications for a single random, and in our case we can have
+		 * the same event added multiple times
+		 */
+		if (client.getTickCount() - lastNotificationTick > RANDOM_EVENT_TIMEOUT) {
+			lastNotificationTick = client.getTickCount();
+			handleRandomEvent(currentRandomEvent);
+		}
 	}
 
 	private boolean isInteractingWithPlant(Actor source, Actor target, Player player) {
@@ -260,7 +274,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		panel.clearEventLog();
 		secondsSinceLastRandomEvent = 0;
 		if (record.npcInfoRecord.npcId == NpcID.STRANGE_PLANT) {
-			secondsSinceLastRandomEvent = (int) ((new Date().getTime() / 1000) - record.spawnedTime);
+			secondsSinceLastRandomEvent = (int) (new Date().getTime() - record.spawnedTime)/1000;
 		}
 		localStorage.setSecondsSinceLastRandomEvent(secondsSinceLastRandomEvent);
 	}
@@ -300,14 +314,15 @@ public class RandomEventAnalyticsPlugin extends Plugin
 
 	private XpInfoRecord createXpInfoRecord() {
 		Skill maximumActionsHrSkill = Skill.AGILITY;
-		int maximumActionsHr = 0;
+		int maximumActionsHr = -1;
 		Skill maximumXpHrSkill = Skill.AGILITY;
-		int maximumXpHr = 0;
-
+		int maximumXpHr = -1;
+		int newSkillActionsHr = -1;
+		int newSkillXpHr = -1;
 		for(Skill skill : Skill.values()) {
 			if (skill.equals(Skill.OVERALL)) continue;
-			int newSkillActionsHr = xpTrackerService.getActionsHr(skill);
-			int newSkillXpHr = xpTrackerService.getXpHr(skill);
+			newSkillActionsHr = xpTrackerService.getActionsHr(skill);
+			newSkillXpHr = xpTrackerService.getXpHr(skill);
 			if (newSkillActionsHr > xpTrackerService.getActionsHr(maximumActionsHrSkill)) {
 				maximumActionsHrSkill = skill;
 				maximumActionsHr = newSkillActionsHr;
