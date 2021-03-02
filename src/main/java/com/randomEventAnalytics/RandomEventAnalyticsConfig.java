@@ -8,13 +8,22 @@ import net.runelite.client.config.ConfigItem;
 public interface RandomEventAnalyticsConfig extends Config
 {
 	@ConfigItem(
-		keyName = "enableOverlay",
-		name = "Enable Overlay",
-		description = "Show the Random Events overlay."
+			keyName = "enableEstimation",
+			name = "Enable Estimation",
+			description = "Show the Random Events estimation."
+	)
+	default boolean enableEstimation()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+			keyName = "enableOverlay",
+			name = "Enable Overlay",
+			description = "Show the Random Events overlay. Enable Estimation must be enabled."
 	)
 	default boolean enableOverlay()
 	{
 		return true;
 	}
-
 }

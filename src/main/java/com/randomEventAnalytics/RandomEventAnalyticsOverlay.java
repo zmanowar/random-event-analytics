@@ -16,6 +16,8 @@ import java.awt.*;
  */
 public class RandomEventAnalyticsOverlay extends Overlay {
     private int timeUntilRandomEvent;
+    private int ticksSinceLastRandomEvent;
+    private int lastRandomTimeDiff;
     private final RandomEventAnalyticsConfig config;
     private final PanelComponent panelComponent = new PanelComponent();
     private static String TIME_UNTIL_LABEL = "Estimate: ";
@@ -37,7 +39,7 @@ public class RandomEventAnalyticsOverlay extends Overlay {
      */
     @Override
     public Dimension render(Graphics2D graphics) {
-        if(!config.enableOverlay()) {
+        if(!config.enableOverlay() || !config.enableEstimation() ) {
             return null;
         }
         panelComponent.getChildren().clear();
@@ -53,16 +55,38 @@ public class RandomEventAnalyticsOverlay extends Overlay {
                 .right(RandomEventAnalyticsUtil.formatSeconds(Math.abs(timeUntilRandomEvent)))
                 .build());
 
+        panelComponent.getChildren().add(LineComponent.builder()
+                .left("Ticks: ")
+                .right(String.valueOf(ticksSinceLastRandomEvent))
+                .build());
+
+        panelComponent.getChildren().add(LineComponent.builder()
+                .left("Previous: ")
+                .right(String.valueOf(RandomEventAnalyticsUtil.formatSeconds(lastRandomTimeDiff)))
+                .build());
+
         return panelComponent.render(graphics);
     }
 
     /**
      * Updates inventory value display
-     * @param newValue the value to update the InventoryValue's {{@link #panelComponent}} with.
+     * @param timeUntilRandomEvent the value to update the InventoryValue's {{@link #panelComponent}} with.
      */
-    public void updateTimeUntilRandomEvent(final int newValue) {
+    public void updateTimeUntilRandomEvent(final int timeUntilRandomEvent) {
         SwingUtilities.invokeLater(() -> {
-            timeUntilRandomEvent = newValue;
+            this.timeUntilRandomEvent = timeUntilRandomEvent;
+        });
+    }
+
+    public void updateLastRandomTime(final int lastRandomTimeDiff) {
+        SwingUtilities.invokeLater(() -> {
+            this.lastRandomTimeDiff = lastRandomTimeDiff;
+        });
+    }
+
+    public void updateTicksSinceLastRandomEvent(final int ticksSinceLastRandomEvent) {
+        SwingUtilities.invokeLater(() -> {
+            this.ticksSinceLastRandomEvent = ticksSinceLastRandomEvent;
         });
     }
 

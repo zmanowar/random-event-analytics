@@ -11,12 +11,14 @@ import com.randomEventAnalytics.localstorage.*;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.coords.LocalPoint;
+import net.runelite.api.coords.WorldArea;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.*;
 import net.runelite.client.Notifier;
 import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.events.ClientShutdown;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.plugins.PluginDependency;
 import net.runelite.client.plugins.xptracker.XpTrackerPlugin;
 import net.runelite.client.config.ConfigManager;
@@ -70,8 +72,13 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	private boolean isLoggedIn = false;
 	private int secondsPerRandomEvent = 60 * 60;
 	private int secondsSinceLastRandomEvent = 0;
+	private int ticksSinceLastRandomEvent = 0;
 	private static final int RANDOM_EVENT_TIMEOUT = 150;
+	private long lastRandomTime = 0;
 	private int lastNotificationTick = -RANDOM_EVENT_TIMEOUT;
+	private final String PLANT_SPAWNED_NOTIFICATION_MESSAGE = "A Strange Plant has spawned, please visit the Random Event Analytics panel to confirm the random.";
+	private static final WorldArea WILDERNESS_ABOVE_GROUND = new WorldArea(2944, 3523, 448, 448, 0);
+	private static final WorldArea WILDERNESS_UNDERGROUND = new WorldArea(2944, 9918, 320, 442, 0);
 	private NavigationButton navButton;
 
 	@Provides
@@ -85,7 +92,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	{
 		overlayManager.add(overlay);
 		panel = new RandomEventAnalyticsPanel(this, config, client);
-		final BufferedImage icon = ImageUtil.getResourceStreamFromClass(getClass(), "random_events_info_icon.png");
+		final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "random_events_info_icon.png");
 
 		navButton = NavigationButton.builder()
 				.tooltip("Random Event Info")
@@ -94,6 +101,17 @@ public class RandomEventAnalyticsPlugin extends Plugin
 				.build();
 
 		clientToolbar.addNavigation(navButton);
+	}
+
+	@Subscribe
+	public void onConfigChanged(ConfigChanged configChanged)
+	{
+		if (!configChanged.getGroup().equals("random-event-analytics"))
+		{
+			return;
+		}
+
+		panel.updateConfig();
 	}
 
 	@Override
@@ -108,7 +126,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	public void onClientShutdown(ClientShutdown event)
 	{
 		isLoggedIn = false;
-		localStorage.setSecondsSinceLastRandomEvent(secondsSinceLastRandomEvent);
+		writeLoggedInTime();
 	}
 
 
@@ -121,8 +139,8 @@ public class RandomEventAnalyticsPlugin extends Plugin
 			isLoggedIn = true;
 			localStorage.setPlayerUsername(client.getUsername());
 			secondsSinceLastRandomEvent = localStorage.loadSecondsSinceLastRandomEvent();
+			ticksSinceLastRandomEvent = localStorage.loadTicksSinceLastRandom();
 			loadPreviousRandomEvents();
-
 		}
 		if (state == GameState.CONNECTION_LOST
 				|| state == GameState.HOPPING
@@ -130,7 +148,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 				|| state == GameState.UNKNOWN
 		) {
 			isLoggedIn = false;
-			localStorage.setSecondsSinceLastRandomEvent(secondsSinceLastRandomEvent);
+			writeLoggedInTime();
 		}
 	}
 
@@ -141,6 +159,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 			panel.clearEventLog();
 			//Collections.sort(randomEvents, Comparator.comparing(RandomEventRecord::getSpawnedTime).reversed());
 			randomEvents.forEach(panel::addRandom);
+			lastRandomTime = randomEvents.get(randomEvents.size() - 1).spawnedTime;
 		} else {
 			panel.setEmptyLog();
 		}
@@ -150,7 +169,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	public void onNpcSpawned(final NpcSpawned event)
 	{
 		final NPC npc = event.getNpc();
-		if (npc.getId() == NpcID.STRANGE_PLANT) {
+		if (isStrangePlant(npc.getId())) {
 			/**
 			 * Unfortunately we cannot determine if the Strange Plant belongs to the player
 			 * (See onInteractingChange)
@@ -162,9 +181,9 @@ public class RandomEventAnalyticsPlugin extends Plugin
 			panel.addUnconfirmedRandom(record);
 			chatMessageManager.queue(QueuedMessage.builder()
 					.type(ChatMessageType.CONSOLE)
-					.runeLiteFormattedMessage("A Strange Plant has spawned, please visit the Random Event Analytics panel to confirm the random.")
+					.runeLiteFormattedMessage(PLANT_SPAWNED_NOTIFICATION_MESSAGE)
 					.build());
-			notifier.notify("A Strange Plant has spawned, please visit the Random Event Analytics panel to confirm the random.");
+			notifier.notify(PLANT_SPAWNED_NOTIFICATION_MESSAGE);
 		}
 	}
 
@@ -187,10 +206,11 @@ public class RandomEventAnalyticsPlugin extends Plugin
 				|| target != player
 				|| player.getInteracting() == source
 				|| !(source instanceof NPC)
-				|| !RandomEventAnalyticsUtil.EVENT_NPCS.contains(((NPC) source).getId()))
+				|| !RandomEventAnalyticsUtil.getEventNpcIds().contains(((NPC) source).getId()))
 		{
 			return;
 		}
+
 		currentRandomEvent = (NPC) source;
 		/**
 		 * This is brought to you by the RandomEventPlugin. It seems sometimes you can
@@ -224,7 +244,8 @@ public class RandomEventAnalyticsPlugin extends Plugin
 			currentRandomEvent = null;
 			// TODO: Unsure if we need to reset the ticks after the NPC despawns or if the timer resets immediately
 			secondsSinceLastRandomEvent = 0;
-			localStorage.setSecondsSinceLastRandomEvent(0);
+			ticksSinceLastRandomEvent = 0;
+			writeLoggedInTime();
 		}
 	}
 
@@ -232,13 +253,25 @@ public class RandomEventAnalyticsPlugin extends Plugin
 			period = 1,
 			unit = ChronoUnit.SECONDS
 	)
-	public void tickTime() {
+	public void timeSchedule() {
 		if (isLoggedIn) {
 			secondsSinceLastRandomEvent += 1;
 			int estimatedSeconds = getNextRandomEventEstimation();
+			int lastRandomTimeDiff = (int) (new Date().getTime() - lastRandomTime) / 1000;
+			// TODO: Call single update methods for overlay and panel.
 			overlay.updateTimeUntilRandomEvent(estimatedSeconds);
+			overlay.updateLastRandomTime(lastRandomTimeDiff);
+			panel.updateLastEventInfo(lastRandomTimeDiff);
 			panel.updateSeconds(estimatedSeconds);
 			// TODO: panel.updateActionsPerHour, panel.updateXpPerHour
+		}
+	}
+
+	@Subscribe
+	public void onGameTick(GameTick tick) {
+		if (isLoggedIn) {
+			ticksSinceLastRandomEvent += 1;
+			overlay.updateTicksSinceLastRandomEvent(ticksSinceLastRandomEvent);
 		}
 	}
 
@@ -255,6 +288,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		RandomEventRecord record = new RandomEventRecord(
 				new Date().getTime(),
 				secondsSinceLastRandomEvent,
+				ticksSinceLastRandomEvent,
 				npcInfoRecord,
 				playerInfoRecord,
 				xpInfoRecord
@@ -273,14 +307,28 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		panel.addRandom(record);
 		panel.clearEventLog();
 		secondsSinceLastRandomEvent = 0;
-		if (record.npcInfoRecord.npcId == NpcID.STRANGE_PLANT) {
-			secondsSinceLastRandomEvent = (int) (new Date().getTime() - record.spawnedTime)/1000;
+		ticksSinceLastRandomEvent = 0;
+		lastRandomTime = record.spawnedTime;
+		if (isStrangePlant(record.npcInfoRecord.npcId)) {
+			// There's a delay between the user determining the plant and when the plant actually spawned
+			secondsSinceLastRandomEvent = (int) (new Date().getTime() - record.spawnedTime) / 1000;
+			// TODO: Check to make sure this calculation is correct.
+			ticksSinceLastRandomEvent = client.getTickCount() - record.ticksSinceLastRandomEvent;
 		}
+		writeLoggedInTime();
+	}
+
+	private void writeLoggedInTime() {
+		localStorage.setTicksSinceLastRandom(ticksSinceLastRandomEvent);
 		localStorage.setSecondsSinceLastRandomEvent(secondsSinceLastRandomEvent);
 	}
 
+	private boolean isStrangePlant(int npcId) {
+		return npcId == NpcID.STRANGE_PLANT;
+	}
+
 	private int getNextRandomEventEstimation() {
-		XpInfoRecord xpInfoRecord = createXpInfoRecord();
+		// XpInfoRecord xpInfoRecord = createXpInfoRecord();
 		return secondsPerRandomEvent - secondsSinceLastRandomEvent;
 	}
 

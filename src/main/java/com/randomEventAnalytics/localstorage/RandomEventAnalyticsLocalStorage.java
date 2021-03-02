@@ -17,6 +17,7 @@ public class RandomEventAnalyticsLocalStorage {
     private static final File LOOT_RECORD_DIR = new File(RUNELITE_DIR, "random-event-analytics");
     private static final String RANDOM_EVENTS_FILE = "random-events";
     private static final String SECONDS_SINCE_LAST_RANDOM_FILE = "seconds";
+    private static final String TICKS_SINCE_LAST_RANDOM_FILE = "ticks";
     // Data is stored in a folder with the players username (login name)
     private File playerFolder;
     private String name;
@@ -124,9 +125,53 @@ public class RandomEventAnalyticsLocalStorage {
         return -1;
     }
 
-    public synchronized boolean setSecondsSinceLastRandomEvent(Integer ticks)
+    public synchronized boolean setSecondsSinceLastRandomEvent(Integer seconds)
     {
         final File tickFile = getFile(SECONDS_SINCE_LAST_RANDOM_FILE);
+
+        // Open File and write new data
+        try
+        {
+            final BufferedWriter file = new BufferedWriter(new FileWriter(String.valueOf(tickFile), false));
+            file.write(seconds.toString());
+            file.close();
+            return true;
+        }
+        catch (IOException ioe)
+        {
+            log.warn("Error writing tick data to file {}: {}", tickFile.getName(), ioe.getMessage());
+            return false;
+        }
+    }
+
+    public synchronized Integer loadTicksSinceLastRandom() {
+        final File file = getFile(TICKS_SINCE_LAST_RANDOM_FILE);
+
+        try (final BufferedReader br = new BufferedReader(new FileReader(file)))
+        {
+            String line;
+            while ((line = br.readLine()) != null)
+            {
+                if (line != "") {
+                    return Integer.parseInt(line.replaceAll("[\\D]", ""));
+                }
+            }
+
+        }
+        catch (FileNotFoundException e)
+        {
+            log.debug("File not found: {}", file.getName());
+        }
+        catch (IOException e)
+        {
+            log.warn("IOException for file {}: {}", file.getName(), e.getMessage());
+        }
+        return -1;
+    }
+
+    public synchronized boolean setTicksSinceLastRandom(Integer ticks)
+    {
+        final File tickFile = getFile(TICKS_SINCE_LAST_RANDOM_FILE);
 
         // Open File and write new data
         try

@@ -21,11 +21,13 @@ public class RandomEventAnalyticsPanel extends PluginPanel {
     private final ArrayList<RandomEventRecordBox> infoBoxes = new ArrayList<RandomEventRecordBox>();
 
     private final JPanel estimationPanel = new JPanel();
+    private final JPanel lastEventStatsPanel = new JPanel();
     private final JComponent eventPanel = new JPanel();
     private final JPanel eventLog = new JPanel();
     private final RandomEventAnalyticsConfig config;
     private final Client client;
     private final JLabel estimationUntilNext = new JLabel(RandomEventRecordBox.htmlLabel("Next Event: ", "--:--"));
+    private final JLabel lastEventStats = new JLabel();
     private final JLabel inInstanceIcon = new JLabel("\u26A0");
     private final String IN_INSTANCE_TOOLTIP = "You are currently in an instance where random events cannot spawn.";
     private static final Logger log = LoggerFactory.getLogger(RandomEventAnalyticsPanel.class);
@@ -68,6 +70,14 @@ public class RandomEventAnalyticsPanel extends PluginPanel {
         setupInInstanceIcon();
         estimationPanel.add(inInstanceIcon, BorderLayout.EAST);
         layoutPanel.add(estimationPanel);
+
+        lastEventStatsPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        lastEventStatsPanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+        lastEventStatsPanel.setLayout(new BorderLayout());
+        lastEventStats.setFont(FontManager.getRunescapeSmallFont());
+        lastEventStatsPanel.add(lastEventStats);
+        lastEventStats.setToolTipText("Denotes the time since the last random, including time logged out.");
+        layoutPanel.add(lastEventStatsPanel, BorderLayout.SOUTH);
 
         eventPanel.setLayout(new BoxLayout(eventPanel, BoxLayout.Y_AXIS));
         eventPanel.setBorder(new EmptyBorder(10, 0, 0, 0));
@@ -141,11 +151,23 @@ public class RandomEventAnalyticsPanel extends PluginPanel {
         repaint();
     }
 
-    void updateSeconds(int estimatedSeconds) {
-        SwingUtilities.invokeLater(() -> rebuildAsync(estimatedSeconds));
+    void updateConfig() {
+        estimationPanel.setVisible(config.enableEstimation());
     }
 
-    private void rebuildAsync(int estimatedSeconds) {
+    void updateLastEventInfo(int lastRandomTimeDiff) {
+        SwingUtilities.invokeLater(() -> updateLastEventInfoAsnc(lastRandomTimeDiff));
+    }
+
+    void updateSeconds(int estimatedSeconds) {
+        SwingUtilities.invokeLater(() -> updateEstimatedSecondsAsync(estimatedSeconds));
+    }
+
+    private void updateLastEventInfoAsnc(int lastRandomTimeDiff) {
+        lastEventStats.setText(RandomEventRecordBox.htmlLabel("\u0394 Time: ", RandomEventAnalyticsUtil.formatSeconds(Math.abs(lastRandomTimeDiff))));
+    }
+
+    private void updateEstimatedSecondsAsync(int estimatedSeconds) {
         inInstanceIcon.setVisible(client.isInInstancedRegion());
         String label = estimatedSeconds >= 0 ? "Next Event: " :  "Overestimate: ";
         estimationUntilNext.setText(RandomEventRecordBox.htmlLabel(label, RandomEventAnalyticsUtil.formatSeconds(Math.abs(estimatedSeconds))));
