@@ -15,29 +15,23 @@ import java.awt.*;
 import java.util.ArrayList;
 
 public class RandomEventAnalyticsPanel extends PluginPanel {
-    RandomEventAnalyticsPlugin plugin;
-
-
+    private static final Logger log = LoggerFactory.getLogger(RandomEventAnalyticsPanel.class);
     private final ArrayList<RandomEventRecordBox> infoBoxes = new ArrayList<RandomEventRecordBox>();
 
     private final JPanel estimationPanel = new JPanel();
-    private final JPanel lastEventStatsPanel = new JPanel();
     private final JComponent eventPanel = new JPanel();
-    private final JPanel eventLog = new JPanel();
     private final RandomEventAnalyticsConfig config;
     private final Client client;
-    private final JLabel estimationUntilNext = new JLabel(RandomEventRecordBox.htmlLabel("Next Event: ", "--:--"));
-    private final JLabel lastEventStats = new JLabel();
+    private final JLabel estimationUntilNext = new JLabel(RandomEventAnalyticsUtil.htmlLabel("Next Event: ", "--:--"));
     private final JLabel inInstanceIcon = new JLabel("\u26A0");
-    private final String IN_INSTANCE_TOOLTIP = "You are currently in an instance where random events cannot spawn.";
-    private static final Logger log = LoggerFactory.getLogger(RandomEventAnalyticsPanel.class);
+    RandomEventAnalyticsPlugin plugin;
 
     RandomEventAnalyticsPanel(RandomEventAnalyticsPlugin plugin, RandomEventAnalyticsConfig config, Client client) {
         super();
         this.plugin = plugin;
         this.config = config;
         this.client = client;
-        setBorder(new EmptyBorder(6 ,6, 6, 6));
+        setBorder(new EmptyBorder(6, 6, 6, 6));
         setBackground(ColorScheme.DARK_GRAY_COLOR);
         setLayout(new BorderLayout());
 
@@ -71,20 +65,8 @@ public class RandomEventAnalyticsPanel extends PluginPanel {
         estimationPanel.add(inInstanceIcon, BorderLayout.EAST);
         layoutPanel.add(estimationPanel);
 
-        lastEventStatsPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
-        lastEventStatsPanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-        lastEventStatsPanel.setLayout(new BorderLayout());
-        lastEventStats.setFont(FontManager.getRunescapeSmallFont());
-        lastEventStatsPanel.add(lastEventStats);
-        lastEventStats.setToolTipText("Denotes the time since the last random, including time logged out.");
-        layoutPanel.add(lastEventStatsPanel, BorderLayout.SOUTH);
-
         eventPanel.setLayout(new BoxLayout(eventPanel, BoxLayout.Y_AXIS));
         eventPanel.setBorder(new EmptyBorder(10, 0, 0, 0));
-        eventLog.setBorder(new EmptyBorder(10, 10, 10, 10));
-        eventLog.add(new JLabel("Login to view the event log"));
-        //initialEventLabel.setBorder(new EmptyBorder(10, 10, 10, 10));
-        layoutPanel.add(eventLog);
         layoutPanel.add(eventPanel, BorderLayout.SOUTH);
     }
 
@@ -92,84 +74,54 @@ public class RandomEventAnalyticsPanel extends PluginPanel {
         inInstanceIcon.setVisible(false);
         inInstanceIcon.setFont(new Font(Font.DIALOG, Font.PLAIN, 12));
         inInstanceIcon.setForeground(Color.RED);
-        inInstanceIcon.setToolTipText(IN_INSTANCE_TOOLTIP);
+        inInstanceIcon.setToolTipText("You are currently in an instance where random events cannot spawn.");
     }
 
-    public void setEmptyLog() {
-        this.setEventLog("<html style='text-align:center'>Event log will populate<br>once a random event occurs</html>");
-    }
-
-    private void setEventLog(String label) {
-        SwingUtilities.invokeLater(() -> {
-            eventLog.setVisible(true);
-            eventLog.removeAll();
-            eventLog.add(new JLabel("<html><div style='text-align:center'>" + label + "</div></html>"));
-            eventLog.revalidate();
-            eventLog.repaint();
-        });
-    }
-
-    public void clearEventLog() {
-        eventLog.setVisible(false);
-        eventLog.removeAll();
-        eventLog.revalidate();
-        eventLog.repaint();
-    }
-
-    public void removeRandomRecordBox(RandomEventRecordBox recordBox) {
-        eventPanel.remove(recordBox.getRandomEventPanel());
-        infoBoxes.remove(recordBox);
-        this.repaintAll();
-    }
-
-    void clearAllRandomsView() {
-        eventPanel.removeAll();
-        infoBoxes.clear();
-        this.repaintAll();
-    }
-
-    void addRandom(RandomEventRecord record) {
-        log.debug("Adding " + record.npcInfoRecord.npcName);
-        SwingUtilities.invokeLater(() -> {
-            RandomEventRecordBox recordBox = new RandomEventRecordBox(plugin, config, client, this, eventPanel, record, true);
-            infoBoxes.add(recordBox);
-        });
-    }
-
-    void addUnconfirmedRandom(RandomEventRecord record) {
-        log.debug("Adding " + record.npcInfoRecord.npcName + " (unconfirmed)");
-        SwingUtilities.invokeLater(() -> {
-            RandomEventRecordBox recordBox = new RandomEventRecordBox(plugin, config, client, this, eventPanel, record, false);
-            infoBoxes.add(recordBox);
-        });
-    }
-
-    private void repaintAll() {
+    public void eventRecordBoxUpdated(RandomEventRecordBox randomEventRecordBox, boolean isConfirmed) {
+        eventPanel.remove(randomEventRecordBox);
+        if (isConfirmed) {
+            plugin.addRandomEvent(randomEventRecordBox.getRandomEvent());
+        }
+        infoBoxes.remove(randomEventRecordBox);
         eventPanel.revalidate();
         eventPanel.repaint();
-        revalidate();
-        repaint();
     }
 
-    void updateConfig() {
+    public void clearAllRandomsView() {
+        eventPanel.removeAll();
+        infoBoxes.clear();
+        eventPanel.repaint();
+    }
+
+    public void addRandom(RandomEventRecord record) {
+        log.debug("Adding " + record.npcInfoRecord.npcName);
+        SwingUtilities.invokeLater(() -> {
+            RandomEventRecordBox recordBox = new RandomEventRecordBox(this, record);
+            eventPanel.add(recordBox, 0);
+            infoBoxes.add(recordBox);
+        });
+    }
+
+    public void addUnconfirmedRandom(RandomEventRecord record) {
+        log.debug("Adding " + record.npcInfoRecord.npcName + " (unconfirmed)");
+        SwingUtilities.invokeLater(() -> {
+            RandomEventRecordBox recordBox = new RandomEventRecordBox(this, record, false);
+            eventPanel.add(recordBox, 0);
+            infoBoxes.add(recordBox);
+        });
+    }
+
+    public void updateConfig() {
         estimationPanel.setVisible(config.enableEstimation());
     }
 
-    void updateLastEventInfo(int lastRandomTimeDiff) {
-        SwingUtilities.invokeLater(() -> updateLastEventInfoAsnc(lastRandomTimeDiff));
-    }
-
-    void updateSeconds(int estimatedSeconds) {
+    public void updateEstimation(int estimatedSeconds) {
         SwingUtilities.invokeLater(() -> updateEstimatedSecondsAsync(estimatedSeconds));
-    }
-
-    private void updateLastEventInfoAsnc(int lastRandomTimeDiff) {
-        lastEventStats.setText(RandomEventRecordBox.htmlLabel("\u0394 Time: ", RandomEventAnalyticsUtil.formatSeconds(Math.abs(lastRandomTimeDiff))));
     }
 
     private void updateEstimatedSecondsAsync(int estimatedSeconds) {
         inInstanceIcon.setVisible(client.isInInstancedRegion());
-        String label = estimatedSeconds >= 0 ? "Next Event: " :  "Overestimate: ";
-        estimationUntilNext.setText(RandomEventRecordBox.htmlLabel(label, RandomEventAnalyticsUtil.formatSeconds(Math.abs(estimatedSeconds))));
+        String label = estimatedSeconds >= 0 ? "Next Event: " : "Overestimate: ";
+        estimationUntilNext.setText(RandomEventAnalyticsUtil.htmlLabel(label, RandomEventAnalyticsUtil.formatSeconds(Math.abs(estimatedSeconds))));
     }
 }

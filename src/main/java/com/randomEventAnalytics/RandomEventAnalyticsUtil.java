@@ -4,9 +4,14 @@ import com.google.common.collect.ImmutableSet;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import net.runelite.api.NpcID;
+import net.runelite.client.ui.ColorScheme;
+import net.runelite.client.util.ColorUtil;
 import net.runelite.client.util.ImageUtil;
+import net.runelite.client.util.QuantityFormatter;
 
 import javax.swing.*;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -20,6 +25,13 @@ public class RandomEventAnalyticsUtil {
     public static Set<Integer> getWildernessEventNpcIds() {
         return NPCS.entrySet().stream()
                 .filter(npcWrapper -> npcWrapper.getValue().isAvailableInWilderness)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
+    }
+
+    public static Set<Integer> getF2PEventNpcIds() {
+        return NPCS.entrySet().stream()
+                .filter(npcWrapper -> npcWrapper.getValue().isAvailableF2P)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toSet());
     }
@@ -57,14 +69,25 @@ public class RandomEventAnalyticsUtil {
         return String.format("%02d:%02d", durationMinutes, durationSeconds);
     }
 
-    public static String buildHTMLTable(HashMap<String, String> labelValueMap) {
-        String table = "<table>";
-        for(Map.Entry<String, String> entry : labelValueMap.entrySet()) {
-            table += String.format("<tr><td>%s</td><td>%s</td></tr>", entry.getKey(), entry.getValue());
-        }
-        table += "</table>";
-        return table;
+    static String htmlLabel(String key, int value) {
+        return htmlLabel(key,
+                QuantityFormatter.quantityToRSDecimalStack(value, true)
+        );
     }
+
+    static String htmlLabel(String key, String value) {
+        return String.format(HTML_LABEL_TEMPLATE, ColorUtil.toHexColor(ColorScheme.LIGHT_GRAY_COLOR), key, value);
+    }
+
+    static final DecimalFormat TWO_DECIMAL_FORMAT = new DecimalFormat("0.00");
+
+    static
+    {
+        TWO_DECIMAL_FORMAT.setRoundingMode(RoundingMode.DOWN);
+    }
+
+    private static final String HTML_LABEL_TEMPLATE =
+            "<html><body style='color:%s'>%s<span style='color:white'>%s</span></body></html>";
 
     public static String formatNumber(int value) {
         return NumberFormat.getNumberInstance(Locale.US).format(value);

@@ -1,62 +1,39 @@
 package com.randomEventAnalytics;
 
 import com.randomEventAnalytics.localstorage.RandomEventRecord;
-import net.runelite.api.Client;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
-import net.runelite.client.util.ColorUtil;
-import net.runelite.client.util.QuantityFormatter;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.text.DecimalFormat;
-import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 
 public class RandomEventRecordBox extends JPanel {
-    private final JComponent parentPanel;
-    private final RandomEventAnalyticsPlugin plugin;
-    private final JPanel container;
-    private JPanel randomEventPanel;
-    private JPanel confirmationPanel = new JPanel();
-    private RandomEventAnalyticsPanel analyticsPanel;
+    private RandomEventAnalyticsPanel panel;
     private RandomEventRecord randomEvent;
-    private boolean isConfirmed;
 
-    RandomEventRecordBox(RandomEventAnalyticsPlugin plugin, RandomEventAnalyticsConfig config, Client client, RandomEventAnalyticsPanel analyticsPanel, JComponent parentPanel, RandomEventRecord randomEvent, boolean isConfirmed) {
-        this.plugin = plugin;
-        this.parentPanel = parentPanel;
-        this.analyticsPanel = analyticsPanel;
+    RandomEventRecordBox(RandomEventAnalyticsPanel panel, RandomEventRecord randomEvent) {
+        this(panel, randomEvent, true);
+    }
+
+    RandomEventRecordBox(RandomEventAnalyticsPanel panel, RandomEventRecord randomEvent, boolean isConfirmed) {
         this.randomEvent = randomEvent;
-        this.isConfirmed = isConfirmed;
-        this.container = new JPanel();
-        this.randomEventPanel = buildRandomPanel(randomEvent);
-        this.parentPanel.add(randomEventPanel, 0);
+        this.panel = panel;
+        buildRandomEventPanel(randomEvent, isConfirmed);
     }
 
-    public JPanel getRandomEventPanel() {
-        return randomEventPanel;
+    public RandomEventRecord getRandomEvent() {
+        return randomEvent;
     }
 
-    private void updateConfirmed(boolean confirmed) {
-        this.confirmationPanel.removeAll();
-        this.container.remove(this.confirmationPanel);
-        analyticsPanel.removeRandomRecordBox(this);
-        if (confirmed) {
-            plugin.addRandomEvent(randomEvent);
-        }
-        this.container.revalidate();
-        this.container.repaint();
-    }
-
-    private JPanel buildRandomPanel(RandomEventRecord record) {
+    private JPanel buildRandomEventPanel(RandomEventRecord record, boolean isConfirmed) {
         JLabel randomName = new JLabel(record.npcInfoRecord.npcName);
         JLabel spawnTime = new JLabel(new SimpleDateFormat("MMM dd, h:mm").format(record.spawnedTime));
 
-        container.setBorder(new EmptyBorder(10, 10, 10, 10));
-        container.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-        container.setLayout(new BorderLayout());
+        this.setBorder(new EmptyBorder(10, 10, 10, 10));
+        this.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+        this.setLayout(new BorderLayout());
 
         JPanel randomInfo = new JPanel();
         randomInfo.setBackground(ColorScheme.DARKER_GRAY_COLOR);
@@ -68,20 +45,20 @@ public class RandomEventRecordBox extends JPanel {
         randomInfo.add(randomName);
         randomInfo.add(spawnTime);
 
-        container.add(
+        this.add(
                 new JLabel(RandomEventAnalyticsUtil.getNPCIcon(record.npcInfoRecord.npcId)),
                 BorderLayout.WEST
         );
-        container.add(randomInfo);
+        this.add(randomInfo);
+        this.setToolTipText(buildToolTip(record));
         if (!isConfirmed) {
-            this.confirmationPanel = buildRandomEventConfirmation(record);
-            container.add(this.confirmationPanel, BorderLayout.SOUTH);
+            this.add(buildConfirmationPanel(record));
         }
-        container.setToolTipText(buildToolTip(record));
-        return container;
+        return this;
     }
 
-    private JPanel buildRandomEventConfirmation(RandomEventRecord record) {
+    private JPanel buildConfirmationPanel(RandomEventRecord record) {
+        JPanel confirmationPanel = new JPanel();
         confirmationPanel.setBorder(new EmptyBorder(0, 0, 0, 0));
         confirmationPanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
         confirmationPanel.setLayout(new BorderLayout());
@@ -91,14 +68,14 @@ public class RandomEventRecordBox extends JPanel {
         confirm.setForeground(Color.GREEN);
         confirm.addActionListener((e) -> {
             SwingUtilities.invokeLater(() -> {
-                this.updateConfirmed(true);
+                panel.eventRecordBoxUpdated(this, true);
             });
         });
         JButton cancel = new JButton("\u2717");
         cancel.setFont(new Font(Font.DIALOG, Font.PLAIN, 12));
         cancel.setForeground(Color.RED);
         cancel.addActionListener((e) -> {
-            this.updateConfirmed(false);
+            panel.eventRecordBoxUpdated(this, false);
         });
         confirmationPanel.add(confirmRandomLabel, BorderLayout.NORTH);
         confirmationPanel.add(confirm, BorderLayout.WEST);
@@ -127,30 +104,4 @@ public class RandomEventRecordBox extends JPanel {
         return data;
 
     }
-
-    static String htmlLabel(String key, int value) {
-        return htmlLabel(key,
-                QuantityFormatter.quantityToRSDecimalStack(value, true)
-        );
-    }
-
-    static String htmlLabel(String key, String value) {
-        return String.format(HTML_LABEL_TEMPLATE, ColorUtil.toHexColor(ColorScheme.LIGHT_GRAY_COLOR), key, value);
-    }
-
-    static final DecimalFormat TWO_DECIMAL_FORMAT = new DecimalFormat("0.00");
-
-    static
-    {
-        TWO_DECIMAL_FORMAT.setRoundingMode(RoundingMode.DOWN);
-    }
-
-
-    private static final String HTML_TOOL_TIP_TEMPLATE =
-            "<html>%s %s done<br/>"
-                    + "%s %s/hr<br/>"
-                    + "%s till goal lvl</html>";
-
-    private static final String HTML_LABEL_TEMPLATE =
-            "<html><body style='color:%s'>%s<span style='color:white'>%s</span></body></html>";
 }

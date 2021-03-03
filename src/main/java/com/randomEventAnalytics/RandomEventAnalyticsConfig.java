@@ -4,9 +4,13 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 
-@ConfigGroup("random-event-analytics")
+@ConfigGroup(RandomEventAnalyticsConfig.CONFIG_GROUP)
 public interface RandomEventAnalyticsConfig extends Config
 {
+	String CONFIG_GROUP = "randomeventanalytics";
+	String SECONDS_SINCE_LAST_RANDOM = "secondsSinceLastRandom";
+	String TICKS_SINCE_LAST_RANDOM = "ticksSinceLastRandom";
+
 	@ConfigItem(
 			keyName = "enableEstimation",
 			name = "Enable Estimation",
