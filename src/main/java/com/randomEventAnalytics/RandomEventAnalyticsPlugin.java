@@ -1,12 +1,32 @@
 package com.randomEventAnalytics;
 
 import com.google.inject.Provides;
-import com.randomEventAnalytics.localstorage.*;
+import com.randomEventAnalytics.localstorage.NpcInfoRecord;
+import com.randomEventAnalytics.localstorage.PlayerInfoRecord;
+import com.randomEventAnalytics.localstorage.RandomEventAnalyticsLocalStorage;
+import com.randomEventAnalytics.localstorage.RandomEventRecord;
+import com.randomEventAnalytics.localstorage.XpInfoRecord;
+import java.awt.image.BufferedImage;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Date;
+import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.*;
+import net.runelite.api.Actor;
+import net.runelite.api.ChatMessageType;
+import net.runelite.api.Client;
+import net.runelite.api.GameState;
+import net.runelite.api.NPC;
+import net.runelite.api.NpcID;
+import net.runelite.api.Player;
+import net.runelite.api.Skill;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
-import net.runelite.api.events.*;
+import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.GameTick;
+import net.runelite.api.events.InteractingChanged;
+import net.runelite.api.events.NpcDespawned;
+import net.runelite.api.events.NpcSpawned;
 import net.runelite.client.Notifier;
 import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.chat.QueuedMessage;
@@ -25,343 +45,386 @@ import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.ImageUtil;
 
-import javax.inject.Inject;
-import java.awt.image.BufferedImage;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Date;
-
 @Slf4j
 @PluginDescriptor(
-        name = "Random Event Analytics"
+	name = "Random Event Analytics"
 )
 @PluginDependency(XpTrackerPlugin.class)
-public class RandomEventAnalyticsPlugin extends Plugin {
-    private static final int RANDOM_EVENT_TIMEOUT = 150;
-    private final String PLANT_SPAWNED_NOTIFICATION_MESSAGE = "A Strange Plant has spawned, please visit the Random Event Analytics panel to confirm the random.";
-    @Inject
-    private ConfigManager configManager;
-    @Inject
-    private OverlayManager overlayManager;
-    @Inject
-    private RandomEventAnalyticsOverlay overlay;
-    @Inject
-    private Client client;
-    @Inject
-    private RandomEventAnalyticsConfig config;
-    @Inject
-    private RandomEventAnalyticsLocalStorage localStorage;
-    @Inject
-    private ClientToolbar clientToolbar;
-    @Inject
-    private ChatMessageManager chatMessageManager;
-    @Inject
-    private Notifier notifier;
-    @Inject
-    private XpTrackerService xpTrackerService;
+public class RandomEventAnalyticsPlugin extends Plugin
+{
+	private static final int RANDOM_EVENT_TIMEOUT = 150;
+	private final String PLANT_SPAWNED_NOTIFICATION_MESSAGE = "A Strange Plant has spawned, please visit the Random Event Analytics panel to confirm the random.";
+	@Inject
+	private ConfigManager configManager;
+	@Inject
+	private OverlayManager overlayManager;
+	@Inject
+	private RandomEventAnalyticsOverlay overlay;
+	@Inject
+	private Client client;
+	@Inject
+	private RandomEventAnalyticsConfig config;
+	@Inject
+	private RandomEventAnalyticsLocalStorage localStorage;
+	@Inject
+	private ClientToolbar clientToolbar;
+	@Inject
+	private ChatMessageManager chatMessageManager;
+	@Inject
+	private Notifier notifier;
+	@Inject
+	private XpTrackerService xpTrackerService;
 
-    private RandomEventAnalyticsPanel panel;
-    private NPC currentRandomEvent;
-    private int secondsPerRandomEvent = 60 * 60;
-    private int secondsSinceLastRandomEvent = 0;
-    private int ticksSinceLastRandomEvent = 0;
-    private String profile;
-    private int lastNotificationTick = -RANDOM_EVENT_TIMEOUT;
-    private NavigationButton navButton;
+	private RandomEventAnalyticsPanel panel;
+	private NPC currentRandomEvent;
+	private int secondsPerRandomEvent = 60 * 60;
+	private int secondsSinceLastRandomEvent = 0;
+	private int ticksSinceLastRandomEvent = 0;
+	private String profile;
+	private int lastNotificationTick = -RANDOM_EVENT_TIMEOUT;
+	private NavigationButton navButton;
 
-    @Provides
-    RandomEventAnalyticsConfig provideConfig(ConfigManager configManager) {
-        return configManager.getConfig(RandomEventAnalyticsConfig.class);
-    }
+	@Provides
+	RandomEventAnalyticsConfig provideConfig(ConfigManager configManager)
+	{
+		return configManager.getConfig(RandomEventAnalyticsConfig.class);
+	}
 
-    @Override
-    protected void startUp() throws Exception {
-        overlayManager.add(overlay);
-        panel = new RandomEventAnalyticsPanel(this, config, client);
-        final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "random_event_analytics.png");
+	@Override
+	protected void startUp() throws Exception
+	{
+		overlayManager.add(overlay);
+		panel = new RandomEventAnalyticsPanel(this, config, client);
+		final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "random_event_analytics.png");
 
-        navButton = NavigationButton.builder()
-                .tooltip("Random Event Analytics")
-                .icon(icon)
-                .panel(panel)
-                .build();
+		navButton = NavigationButton.builder()
+			.tooltip("Random Event Analytics")
+			.icon(icon)
+			.panel(panel)
+			.build();
 
-        clientToolbar.addNavigation(navButton);
-    }
+		clientToolbar.addNavigation(navButton);
+	}
 
-    @Override
-    protected void shutDown() {
-        updateRandomEventDeltas();
-        currentRandomEvent = null;
-        lastNotificationTick = 0;
-        overlayManager.removeIf(e -> e instanceof RandomEventAnalyticsOverlay);
-        clientToolbar.removeNavigation(navButton);
-    }
+	@Override
+	protected void shutDown()
+	{
+		updateRandomEventDeltas();
+		currentRandomEvent = null;
+		lastNotificationTick = 0;
+		overlayManager.removeIf(e -> e instanceof RandomEventAnalyticsOverlay);
+		clientToolbar.removeNavigation(navButton);
+	}
 
-    @Subscribe
-    public void onConfigChanged(ConfigChanged configChanged) {
-        if (!configChanged.getGroup().equals(RandomEventAnalyticsConfig.CONFIG_GROUP)) {
-            return;
-        }
+	@Subscribe
+	public void onConfigChanged(ConfigChanged configChanged)
+	{
+		if (!configChanged.getGroup().equals(RandomEventAnalyticsConfig.CONFIG_GROUP))
+		{
+			return;
+		}
 
-        panel.updateConfig();
-    }
+		panel.updateConfig();
+	}
 
-    @Subscribe
-    public void onClientShutdown(ClientShutdown event) {
-        updateRandomEventDeltas();
-    }
-
-
-    @Subscribe
-    public void onGameStateChanged(GameStateChanged gameStateChanged) {
-        GameState state = gameStateChanged.getGameState();
-        if (state == GameState.LOGGED_IN) {
-            profile = client.getUsername();
-            localStorage.setPlayerUsername(profile);
-            secondsSinceLastRandomEvent = getInitialSecondsSinceLastRandom();
-            ticksSinceLastRandomEvent = getInitialTicksSinceLastRandom();
-            loadPreviousRandomEvents();
-        }
-        if (state == GameState.CONNECTION_LOST || state == GameState.HOPPING
-                || state == GameState.LOGIN_SCREEN || state == GameState.UNKNOWN
-        ) {
-            updateRandomEventDeltas();
-        }
-    }
-
-    private int getInitialSecondsSinceLastRandom() {
-        try {
-            return configManager.getConfiguration(
-                    RandomEventAnalyticsConfig.CONFIG_GROUP,
-                    profile,
-                    RandomEventAnalyticsConfig.SECONDS_SINCE_LAST_RANDOM,
-                    int.class);
-        } catch (NullPointerException e) {
-            return 0;
-        }
-    }
-
-    private int getInitialTicksSinceLastRandom() {
-        try {
-            return configManager.getConfiguration(
-                    RandomEventAnalyticsConfig.CONFIG_GROUP,
-                    profile,
-                    RandomEventAnalyticsConfig.TICKS_SINCE_LAST_RANDOM,
-                    int.class);
-        } catch (NullPointerException e) {
-            return 0;
-        }
-    }
+	@Subscribe
+	public void onClientShutdown(ClientShutdown event)
+	{
+		updateRandomEventDeltas();
+	}
 
 
-    private synchronized void loadPreviousRandomEvents() {
-        panel.clearAllRandomsView();
-        ArrayList<RandomEventRecord> randomEvents = localStorage.loadRandomEventRecords();
-        if (randomEvents.size() > 0) {
-            randomEvents.forEach(panel::addRandom);
-        }
-    }
+	@Subscribe
+	public void onGameStateChanged(GameStateChanged gameStateChanged)
+	{
+		GameState state = gameStateChanged.getGameState();
+		if (state == GameState.LOGGED_IN)
+		{
+			profile = client.getUsername();
+			localStorage.setPlayerUsername(profile);
+			secondsSinceLastRandomEvent = getInitialSecondsSinceLastRandom();
+			ticksSinceLastRandomEvent = getInitialTicksSinceLastRandom();
+			loadPreviousRandomEvents();
+		}
+		if (state == GameState.CONNECTION_LOST || state == GameState.HOPPING
+			|| state == GameState.LOGIN_SCREEN || state == GameState.UNKNOWN
+		)
+		{
+			updateRandomEventDeltas();
+		}
+	}
 
-    @Subscribe
-    public void onInteractingChanged(InteractingChanged event) {
-        Actor source = event.getSource();
-        Actor target = event.getTarget();
-        Player player = client.getLocalPlayer();
-        // Check that the npc is interacting with the player and the player isn't interacting with the npc, so
-        // that the notification doesn't fire from talking to other user's randoms
-        if (player == null
-                || target != player
-                || player.getInteracting() == source
-                || !(source instanceof NPC)
-                || !RandomEventAnalyticsUtil.getEventNpcIds().contains(((NPC) source).getId())) {
-            return;
-        }
+	private int getInitialSecondsSinceLastRandom()
+	{
+		try
+		{
+			return configManager.getConfiguration(
+				RandomEventAnalyticsConfig.CONFIG_GROUP,
+				profile,
+				RandomEventAnalyticsConfig.SECONDS_SINCE_LAST_RANDOM,
+				int.class);
+		}
+		catch (NullPointerException e)
+		{
+			return 0;
+		}
+	}
 
-        currentRandomEvent = (NPC) source;
-        /**
-         * This is brought to you by the RandomEventPlugin. It seems sometimes you can
-         * have multiple notifications for a single random, and in our case we can have
-         * the same event added multiple times
-         */
-        if (client.getTickCount() - lastNotificationTick > RANDOM_EVENT_TIMEOUT) {
-            lastNotificationTick = client.getTickCount();
-            handleRandomEvent(currentRandomEvent);
-        }
-    }
+	private int getInitialTicksSinceLastRandom()
+	{
+		try
+		{
+			return configManager.getConfiguration(
+				RandomEventAnalyticsConfig.CONFIG_GROUP,
+				profile,
+				RandomEventAnalyticsConfig.TICKS_SINCE_LAST_RANDOM,
+				int.class);
+		}
+		catch (NullPointerException e)
+		{
+			return 0;
+		}
+	}
 
-    private void handleRandomEvent(NPC npc) {
-        currentRandomEvent = npc;
-        addRandomEvent(npc);
-    }
 
-    @Subscribe
-    public void onNpcSpawned(final NpcSpawned event) {
-        final NPC npc = event.getNpc();
-        if (isStrangePlant(npc.getId())) {
-            /**
-             * Unfortunately we cannot determine if the Strange Plant belongs to the player
-             * (See onInteractingChange)
-             * So we need to add an unconfirmed record (UI only) that allows the player to
-             * confirm if the plant belongs to them. Only then will it update the records.
-             * Note: This bypasses setting currentRandomEvent
-             */
-            RandomEventRecord record = createRandomEventRecord(npc);
-            panel.addUnconfirmedRandom(record);
-            chatMessageManager.queue(QueuedMessage.builder()
-                    .type(ChatMessageType.CONSOLE)
-                    .runeLiteFormattedMessage(PLANT_SPAWNED_NOTIFICATION_MESSAGE)
-                    .build());
-            notifier.notify(PLANT_SPAWNED_NOTIFICATION_MESSAGE);
-        }
-    }
+	private synchronized void loadPreviousRandomEvents()
+	{
+		panel.clearAllRandomsView();
+		ArrayList<RandomEventRecord> randomEvents = localStorage.loadRandomEventRecords();
+		if (randomEvents.size() > 0)
+		{
+			randomEvents.forEach(panel::addRandom);
+		}
+	}
 
-    @Subscribe
-    public void onNpcDespawned(NpcDespawned npcDespawned) {
-        NPC npc = npcDespawned.getNpc();
+	@Subscribe
+	public void onInteractingChanged(InteractingChanged event)
+	{
+		Actor source = event.getSource();
+		Actor target = event.getTarget();
+		Player player = client.getLocalPlayer();
+		// Check that the npc is interacting with the player and the player isn't interacting with the npc, so
+		// that the notification doesn't fire from talking to other user's randoms
+		if (player == null
+			|| target != player
+			|| player.getInteracting() == source
+			|| !(source instanceof NPC)
+			|| !RandomEventAnalyticsUtil.getEventNpcIds().contains(((NPC) source).getId()))
+		{
+			return;
+		}
 
-        if (npc == currentRandomEvent) {
-            currentRandomEvent = null;
-            // TODO: Unsure if we need to reset the ticks after the NPC despawns or if the timer resets immediately
-            secondsSinceLastRandomEvent = 0;
-            ticksSinceLastRandomEvent = 0;
-            updateRandomEventDeltas();
-        }
-    }
+		currentRandomEvent = (NPC) source;
+		/**
+		 * This is brought to you by the RandomEventPlugin. It seems sometimes you can
+		 * have multiple notifications for a single random, and in our case we can have
+		 * the same event added multiple times
+		 */
+		if (client.getTickCount() - lastNotificationTick > RANDOM_EVENT_TIMEOUT)
+		{
+			lastNotificationTick = client.getTickCount();
+			handleRandomEvent(currentRandomEvent);
+		}
+	}
 
-    @Schedule(
-            period = 1,
-            unit = ChronoUnit.SECONDS
-    )
-    public void timeSchedule() {
-        if (client.getGameState() == GameState.LOGGED_IN) {
-            secondsSinceLastRandomEvent += 1;
-            if (config.enableEstimation()) {
-                int estimatedSeconds = getNextRandomEventEstimation();
-                overlay.updateEstimation(estimatedSeconds);
-                panel.updateEstimation(estimatedSeconds);
-            }
-        }
-    }
+	private void handleRandomEvent(NPC npc)
+	{
+		currentRandomEvent = npc;
+		addRandomEvent(npc);
+	}
 
-    @Subscribe
-    public void onGameTick(GameTick tick) {
-        if (client.getGameState() == GameState.LOGGED_IN) {
-            ticksSinceLastRandomEvent += 1;
-            overlay.updateTicksSinceLastRandomEvent(ticksSinceLastRandomEvent);
-        }
-    }
+	@Subscribe
+	public void onNpcSpawned(final NpcSpawned event)
+	{
+		final NPC npc = event.getNpc();
+		if (isStrangePlant(npc.getId()))
+		{
+			/**
+			 * Unfortunately we cannot determine if the Strange Plant belongs to the player
+			 * (See onInteractingChange)
+			 * So we need to add an unconfirmed record (UI only) that allows the player to
+			 * confirm if the plant belongs to them. Only then will it update the records.
+			 * Note: This bypasses setting currentRandomEvent
+			 */
+			RandomEventRecord record = createRandomEventRecord(npc);
+			panel.addUnconfirmedRandom(record);
+			chatMessageManager.queue(QueuedMessage.builder()
+				.type(ChatMessageType.CONSOLE)
+				.runeLiteFormattedMessage(PLANT_SPAWNED_NOTIFICATION_MESSAGE)
+				.build());
+			notifier.notify(PLANT_SPAWNED_NOTIFICATION_MESSAGE);
+		}
+	}
 
-    public void addRandomEvent(final NPC npc) {
-        addRandomEvent(createRandomEventRecord(npc));
-    }
+	@Subscribe
+	public void onNpcDespawned(NpcDespawned npcDespawned)
+	{
+		NPC npc = npcDespawned.getNpc();
 
-    public void addRandomEvent(final RandomEventRecord record) {
-        localStorage.addRandomEventRecord(record);
-        panel.addRandom(record);
-        secondsSinceLastRandomEvent = 0;
-        ticksSinceLastRandomEvent = 0;
-        if (isStrangePlant(record.npcInfoRecord.npcId)) {
-            secondsSinceLastRandomEvent = (int) (new Date().getTime() - record.spawnedTime) / 1000;
-            ticksSinceLastRandomEvent = client.getTickCount() - record.ticksSinceLastRandomEvent;
-        }
-        updateRandomEventDeltas();
-    }
+		if (npc == currentRandomEvent)
+		{
+			currentRandomEvent = null;
+			// TODO: Unsure if we need to reset the ticks after the NPC despawns or if the timer resets immediately
+			secondsSinceLastRandomEvent = 0;
+			ticksSinceLastRandomEvent = 0;
+			updateRandomEventDeltas();
+		}
+	}
 
-    private RandomEventRecord createRandomEventRecord(final NPC npc) {
-        Player player = client.getLocalPlayer();
-        PlayerInfoRecord playerInfoRecord = createPlayerInfoRecord(player);
-        NpcInfoRecord npcInfoRecord = createNpcInfoRecord(npc);
-        XpInfoRecord xpInfoRecord = createXpInfoRecord();
-        RandomEventRecord record = new RandomEventRecord(
-                new Date().getTime(),
-                secondsSinceLastRandomEvent,
-                ticksSinceLastRandomEvent,
-                npcInfoRecord,
-                playerInfoRecord,
-                xpInfoRecord
-        );
-        return record;
-    }
+	@Schedule(
+		period = 1,
+		unit = ChronoUnit.SECONDS
+	)
+	public void timeSchedule()
+	{
+		if (client.getGameState() == GameState.LOGGED_IN)
+		{
+			secondsSinceLastRandomEvent += 1;
+			if (config.enableEstimation())
+			{
+				int estimatedSeconds = getNextRandomEventEstimation();
+				overlay.updateEstimation(estimatedSeconds);
+				panel.updateEstimation(estimatedSeconds);
+			}
+		}
+	}
 
-    private void updateRandomEventDeltas() {
-        configManager.setConfiguration(
-                RandomEventAnalyticsConfig.CONFIG_GROUP,
-                profile,
-                RandomEventAnalyticsConfig.SECONDS_SINCE_LAST_RANDOM,
-                secondsSinceLastRandomEvent);
-        configManager.setConfiguration(
-                RandomEventAnalyticsConfig.CONFIG_GROUP,
-                profile,
-                RandomEventAnalyticsConfig.TICKS_SINCE_LAST_RANDOM,
-                ticksSinceLastRandomEvent);
-    }
+	@Subscribe
+	public void onGameTick(GameTick tick)
+	{
+		if (client.getGameState() == GameState.LOGGED_IN)
+		{
+			ticksSinceLastRandomEvent += 1;
+			overlay.updateTicksSinceLastRandomEvent(ticksSinceLastRandomEvent);
+		}
+	}
 
-    private int getNextRandomEventEstimation() {
-        return secondsPerRandomEvent - secondsSinceLastRandomEvent;
-    }
+	public void addRandomEvent(final NPC npc)
+	{
+		addRandomEvent(createRandomEventRecord(npc));
+	}
 
-    private NpcInfoRecord createNpcInfoRecord(NPC npc) {
-        LocalPoint npcLocalLocation = npc.getLocalLocation();
-        WorldPoint npcWorldLocation = npc.getWorldLocation();
-        return new NpcInfoRecord(
-                npc.getId(),
-                npc.getName(),
-                npc.getCombatLevel(),
-                npcLocalLocation.getX(),
-                npcLocalLocation.getY(),
-                npcWorldLocation.getX(),
-                npcWorldLocation.getY(),
-                npcWorldLocation.getPlane()
-        );
-    }
+	public void addRandomEvent(final RandomEventRecord record)
+	{
+		localStorage.addRandomEventRecord(record);
+		panel.addRandom(record);
+		secondsSinceLastRandomEvent = 0;
+		ticksSinceLastRandomEvent = 0;
+		if (isStrangePlant(record.npcInfoRecord.npcId))
+		{
+			secondsSinceLastRandomEvent = (int) (new Date().getTime() - record.spawnedTime) / 1000;
+			ticksSinceLastRandomEvent = client.getTickCount() - record.ticksSinceLastRandomEvent;
+		}
+		updateRandomEventDeltas();
+	}
 
-    private PlayerInfoRecord createPlayerInfoRecord(Player player) {
-        LocalPoint playerLocalLocation = player.getLocalLocation();
-        WorldPoint playerWorldLocation = player.getWorldLocation();
-        return new PlayerInfoRecord(
-                player.getCombatLevel(),
-                playerLocalLocation.getX(),
-                playerLocalLocation.getY(),
-                playerWorldLocation.getX(),
-                playerWorldLocation.getY(),
-                playerWorldLocation.getPlane()
-        );
-    }
+	private RandomEventRecord createRandomEventRecord(final NPC npc)
+	{
+		Player player = client.getLocalPlayer();
+		PlayerInfoRecord playerInfoRecord = createPlayerInfoRecord(player);
+		NpcInfoRecord npcInfoRecord = createNpcInfoRecord(npc);
+		XpInfoRecord xpInfoRecord = createXpInfoRecord();
+		RandomEventRecord record = new RandomEventRecord(
+			new Date().getTime(),
+			secondsSinceLastRandomEvent,
+			ticksSinceLastRandomEvent,
+			npcInfoRecord,
+			playerInfoRecord,
+			xpInfoRecord
+		);
+		return record;
+	}
 
-    private XpInfoRecord createXpInfoRecord() {
-        Skill maximumActionsHrSkill = Skill.AGILITY;
-        int maximumActionsHr = xpTrackerService.getActionsHr(Skill.AGILITY);
-        Skill maximumXpHrSkill = Skill.AGILITY;
-        int maximumXpHr = xpTrackerService.getXpHr(Skill.AGILITY);
-        int newSkillActionsHr = -1;
-        int newSkillXpHr = -1;
-        for (Skill skill : Skill.values()) {
-            if (skill.equals(Skill.OVERALL)) continue;
-            newSkillActionsHr = xpTrackerService.getActionsHr(skill);
-            newSkillXpHr = xpTrackerService.getXpHr(skill);
-            if (newSkillActionsHr > xpTrackerService.getActionsHr(maximumActionsHrSkill)) {
-                maximumActionsHrSkill = skill;
-                maximumActionsHr = newSkillActionsHr;
-            }
-            if (newSkillXpHr > xpTrackerService.getXpHr(maximumXpHrSkill)) {
-                maximumXpHrSkill = skill;
-                maximumXpHr = newSkillXpHr;
-            }
-        }
-        return new XpInfoRecord(
-                xpTrackerService.getActionsHr(Skill.OVERALL),
-                xpTrackerService.getXpHr(Skill.OVERALL),
-                maximumActionsHrSkill.getName(),
-                maximumActionsHr,
-                maximumXpHrSkill.getName(),
-                maximumXpHr,
-                client.getOverallExperience()
-        );
+	private void updateRandomEventDeltas()
+	{
+		configManager.setConfiguration(
+			RandomEventAnalyticsConfig.CONFIG_GROUP,
+			profile,
+			RandomEventAnalyticsConfig.SECONDS_SINCE_LAST_RANDOM,
+			secondsSinceLastRandomEvent);
+		configManager.setConfiguration(
+			RandomEventAnalyticsConfig.CONFIG_GROUP,
+			profile,
+			RandomEventAnalyticsConfig.TICKS_SINCE_LAST_RANDOM,
+			ticksSinceLastRandomEvent);
+	}
 
-    }
+	private int getNextRandomEventEstimation()
+	{
+		return secondsPerRandomEvent - secondsSinceLastRandomEvent;
+	}
 
-    private boolean isStrangePlant(int npcId) {
-        return npcId == NpcID.STRANGE_PLANT;
-    }
+	private NpcInfoRecord createNpcInfoRecord(NPC npc)
+	{
+		LocalPoint npcLocalLocation = npc.getLocalLocation();
+		WorldPoint npcWorldLocation = npc.getWorldLocation();
+		return new NpcInfoRecord(
+			npc.getId(),
+			npc.getName(),
+			npc.getCombatLevel(),
+			npcLocalLocation.getX(),
+			npcLocalLocation.getY(),
+			npcWorldLocation.getX(),
+			npcWorldLocation.getY(),
+			npcWorldLocation.getPlane()
+		);
+	}
+
+	private PlayerInfoRecord createPlayerInfoRecord(Player player)
+	{
+		LocalPoint playerLocalLocation = player.getLocalLocation();
+		WorldPoint playerWorldLocation = player.getWorldLocation();
+		return new PlayerInfoRecord(
+			player.getCombatLevel(),
+			playerLocalLocation.getX(),
+			playerLocalLocation.getY(),
+			playerWorldLocation.getX(),
+			playerWorldLocation.getY(),
+			playerWorldLocation.getPlane()
+		);
+	}
+
+	private XpInfoRecord createXpInfoRecord()
+	{
+		Skill maximumActionsHrSkill = Skill.AGILITY;
+		int maximumActionsHr = xpTrackerService.getActionsHr(Skill.AGILITY);
+		Skill maximumXpHrSkill = Skill.AGILITY;
+		int maximumXpHr = xpTrackerService.getXpHr(Skill.AGILITY);
+		int newSkillActionsHr = -1;
+		int newSkillXpHr = -1;
+		for (Skill skill : Skill.values())
+		{
+			if (skill.equals(Skill.OVERALL))
+			{
+				continue;
+			}
+			newSkillActionsHr = xpTrackerService.getActionsHr(skill);
+			newSkillXpHr = xpTrackerService.getXpHr(skill);
+			if (newSkillActionsHr > xpTrackerService.getActionsHr(maximumActionsHrSkill))
+			{
+				maximumActionsHrSkill = skill;
+				maximumActionsHr = newSkillActionsHr;
+			}
+			if (newSkillXpHr > xpTrackerService.getXpHr(maximumXpHrSkill))
+			{
+				maximumXpHrSkill = skill;
+				maximumXpHr = newSkillXpHr;
+			}
+		}
+		return new XpInfoRecord(
+			xpTrackerService.getActionsHr(Skill.OVERALL),
+			xpTrackerService.getXpHr(Skill.OVERALL),
+			maximumActionsHrSkill.getName(),
+			maximumActionsHr,
+			maximumXpHrSkill.getName(),
+			maximumXpHr,
+			client.getOverallExperience()
+		);
+
+	}
+
+	private boolean isStrangePlant(int npcId)
+	{
+		return npcId == NpcID.STRANGE_PLANT;
+	}
 }

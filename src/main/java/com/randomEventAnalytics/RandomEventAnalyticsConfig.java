@@ -12,9 +12,9 @@ public interface RandomEventAnalyticsConfig extends Config
 	String TICKS_SINCE_LAST_RANDOM = "ticksSinceLastRandom";
 
 	@ConfigItem(
-			keyName = "enableEstimation",
-			name = "Enable Estimation",
-			description = "Show the Random Events estimation."
+		keyName = "enableEstimation",
+		name = "Enable Estimation",
+		description = "Show the Random Events estimation."
 	)
 	default boolean enableEstimation()
 	{
@@ -22,9 +22,9 @@ public interface RandomEventAnalyticsConfig extends Config
 	}
 
 	@ConfigItem(
-			keyName = "enableOverlay",
-			name = "Enable Overlay",
-			description = "Show the Random Events overlay. Enable Estimation must be enabled."
+		keyName = "enableOverlay",
+		name = "Enable Overlay",
+		description = "Show the Random Events overlay. Enable Estimation must be enabled."
 	)
 	default boolean enableOverlay()
 	{
