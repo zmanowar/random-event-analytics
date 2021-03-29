@@ -25,7 +25,6 @@ import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.InteractingChanged;
-import net.runelite.api.events.NpcDespawned;
 import net.runelite.api.events.NpcSpawned;
 import net.runelite.client.Notifier;
 import net.runelite.client.chat.ChatMessageManager;
@@ -53,6 +52,7 @@ import net.runelite.client.util.ImageUtil;
 public class RandomEventAnalyticsPlugin extends Plugin
 {
 	private static final int RANDOM_EVENT_TIMEOUT = 150;
+	private static final int STRANGE_PLANT_SPAWN_RADIUS = 1;
 	private final String PLANT_SPAWNED_NOTIFICATION_MESSAGE = "A Strange Plant has spawned, please visit the Random Event Analytics panel to confirm the random.";
 	@Inject
 	private ConfigManager configManager;
@@ -76,10 +76,11 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	private XpTrackerService xpTrackerService;
 
 	private RandomEventAnalyticsPanel panel;
-	private NPC currentRandomEvent;
+
 	private int secondsPerRandomEvent = 60 * 60;
 	private int secondsSinceLastRandomEvent = 0;
 	private int ticksSinceLastRandomEvent = 0;
+	private int secondsInInstance = 0;
 	private String profile;
 	private int lastNotificationTick = -RANDOM_EVENT_TIMEOUT;
 	private NavigationButton navButton;
@@ -109,8 +110,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	@Override
 	protected void shutDown()
 	{
-		updateRandomEventDeltas();
-		currentRandomEvent = null;
+		updateConfig();
 		lastNotificationTick = 0;
 		overlayManager.removeIf(e -> e instanceof RandomEventAnalyticsOverlay);
 		clientToolbar.removeNavigation(navButton);
@@ -130,7 +130,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	@Subscribe
 	public void onClientShutdown(ClientShutdown event)
 	{
-		updateRandomEventDeltas();
+		updateConfig();
 	}
 
 
@@ -140,17 +140,36 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		GameState state = gameStateChanged.getGameState();
 		if (state == GameState.LOGGED_IN)
 		{
-			profile = client.getUsername();
-			localStorage.setPlayerUsername(profile);
+			profile = configManager.getRSProfileKey();
+			localStorage.setPlayerUsername(client.getUsername());
 			secondsSinceLastRandomEvent = getInitialSecondsSinceLastRandom();
 			ticksSinceLastRandomEvent = getInitialTicksSinceLastRandom();
+			secondsInInstance = getInitialSecondsInInstance();
 			loadPreviousRandomEvents();
 		}
 		if (state == GameState.CONNECTION_LOST || state == GameState.HOPPING
 			|| state == GameState.LOGIN_SCREEN || state == GameState.UNKNOWN
+			|| state == GameState.LOADING
 		)
 		{
-			updateRandomEventDeltas();
+			updateConfig();
+		}
+	}
+
+	private int getInitialSecondsInInstance()
+	{
+		try
+		{
+			return configManager.getConfiguration(
+				RandomEventAnalyticsConfig.CONFIG_GROUP,
+				profile,
+				RandomEventAnalyticsConfig.SECONDS_IN_INSTANCE,
+				int.class);
+		}
+		catch (NullPointerException e)
+		{
+			log.debug("No config loaded for: {}", profile);
+			return 0;
 		}
 	}
 
@@ -166,6 +185,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		}
 		catch (NullPointerException e)
 		{
+			log.debug("No config loaded for: {}", profile);
 			return 0;
 		}
 	}
@@ -182,6 +202,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		}
 		catch (NullPointerException e)
 		{
+			log.debug("No config loaded for: {}", profile);
 			return 0;
 		}
 	}
@@ -214,7 +235,6 @@ public class RandomEventAnalyticsPlugin extends Plugin
 			return;
 		}
 
-		currentRandomEvent = (NPC) source;
 		/**
 		 * This is brought to you by the RandomEventPlugin. It seems sometimes you can
 		 * have multiple notifications for a single random, and in our case we can have
@@ -223,13 +243,12 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		if (client.getTickCount() - lastNotificationTick > RANDOM_EVENT_TIMEOUT)
 		{
 			lastNotificationTick = client.getTickCount();
-			handleRandomEvent(currentRandomEvent);
+			handleRandomEvent((NPC) source);
 		}
 	}
 
 	private void handleRandomEvent(NPC npc)
 	{
-		currentRandomEvent = npc;
 		addRandomEvent(npc);
 	}
 
@@ -239,35 +258,23 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		final NPC npc = event.getNpc();
 		if (isStrangePlant(npc.getId()))
 		{
-			/**
-			 * Unfortunately we cannot determine if the Strange Plant belongs to the player
-			 * (See onInteractingChange)
-			 * So we need to add an unconfirmed record (UI only) that allows the player to
-			 * confirm if the plant belongs to them. Only then will it update the records.
-			 * Note: This bypasses setting currentRandomEvent
-			 */
-			RandomEventRecord record = createRandomEventRecord(npc);
-			panel.addUnconfirmedRandom(record);
-			chatMessageManager.queue(QueuedMessage.builder()
-				.type(ChatMessageType.CONSOLE)
-				.runeLiteFormattedMessage(PLANT_SPAWNED_NOTIFICATION_MESSAGE)
-				.build());
-			notifier.notify(PLANT_SPAWNED_NOTIFICATION_MESSAGE);
-		}
-	}
-
-	@Subscribe
-	public void onNpcDespawned(NpcDespawned npcDespawned)
-	{
-		NPC npc = npcDespawned.getNpc();
-
-		if (npc == currentRandomEvent)
-		{
-			currentRandomEvent = null;
-			// TODO: Unsure if we need to reset the ticks after the NPC despawns or if the timer resets immediately
-			secondsSinceLastRandomEvent = 0;
-			ticksSinceLastRandomEvent = 0;
-			updateRandomEventDeltas();
+			Player player = client.getLocalPlayer();
+			log.debug("Distance to plant: {}", player.getWorldLocation().distanceTo(npc.getWorldLocation()));
+			if (player.getWorldLocation().distanceTo(npc.getWorldLocation()) == STRANGE_PLANT_SPAWN_RADIUS) {
+				/**
+				 * Unfortunately we cannot determine if the Strange Plant belongs to the player
+				 * (See onInteractingChange)
+				 * So we need to add an unconfirmed record (UI only) that allows the player to
+				 * confirm if the plant belongs to them. Only then will it update the records.
+				 */
+				RandomEventRecord record = createRandomEventRecord(npc);
+				panel.addUnconfirmedRandom(record);
+				chatMessageManager.queue(QueuedMessage.builder()
+					.type(ChatMessageType.CONSOLE)
+					.runeLiteFormattedMessage(PLANT_SPAWNED_NOTIFICATION_MESSAGE)
+					.build());
+				notifier.notify(PLANT_SPAWNED_NOTIFICATION_MESSAGE);
+			}
 		}
 	}
 
@@ -280,10 +287,15 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		if (client.getGameState() == GameState.LOGGED_IN)
 		{
 			secondsSinceLastRandomEvent += 1;
+			if (client.isInInstancedRegion())
+			{
+				secondsInInstance += 1;
+			}
 			if (config.enableEstimation())
 			{
 				int estimatedSeconds = getNextRandomEventEstimation();
 				overlay.updateEstimation(estimatedSeconds);
+				overlay.updateSecondsInInstance(secondsInInstance);
 				panel.updateEstimation(estimatedSeconds);
 			}
 		}
@@ -310,12 +322,13 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		panel.addRandom(record);
 		secondsSinceLastRandomEvent = 0;
 		ticksSinceLastRandomEvent = 0;
+		secondsInInstance = 0;
 		if (isStrangePlant(record.npcInfoRecord.npcId))
 		{
 			secondsSinceLastRandomEvent = (int) (new Date().getTime() - record.spawnedTime) / 1000;
-			ticksSinceLastRandomEvent = client.getTickCount() - record.ticksSinceLastRandomEvent;
+			ticksSinceLastRandomEvent = 0;
 		}
-		updateRandomEventDeltas();
+		updateConfig();
 	}
 
 	private RandomEventRecord createRandomEventRecord(final NPC npc)
@@ -330,12 +343,13 @@ public class RandomEventAnalyticsPlugin extends Plugin
 			ticksSinceLastRandomEvent,
 			npcInfoRecord,
 			playerInfoRecord,
-			xpInfoRecord
+			xpInfoRecord,
+			secondsInInstance
 		);
 		return record;
 	}
 
-	private void updateRandomEventDeltas()
+	private void updateConfig()
 	{
 		configManager.setConfiguration(
 			RandomEventAnalyticsConfig.CONFIG_GROUP,
@@ -347,6 +361,11 @@ public class RandomEventAnalyticsPlugin extends Plugin
 			profile,
 			RandomEventAnalyticsConfig.TICKS_SINCE_LAST_RANDOM,
 			ticksSinceLastRandomEvent);
+		configManager.setConfiguration(
+			RandomEventAnalyticsConfig.CONFIG_GROUP,
+			profile,
+			RandomEventAnalyticsConfig.SECONDS_IN_INSTANCE,
+			secondsInInstance);
 	}
 
 	private int getNextRandomEventEstimation()

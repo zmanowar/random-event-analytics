@@ -10,6 +10,7 @@ public interface RandomEventAnalyticsConfig extends Config
 	String CONFIG_GROUP = "randomeventanalytics";
 	String SECONDS_SINCE_LAST_RANDOM = "secondsSinceLastRandom";
 	String TICKS_SINCE_LAST_RANDOM = "ticksSinceLastRandom";
+	String SECONDS_IN_INSTANCE = "secondsInInstance";
 
 	@ConfigItem(
 		keyName = "enableEstimation",
@@ -29,5 +30,15 @@ public interface RandomEventAnalyticsConfig extends Config
 	default boolean enableOverlay()
 	{
 		return true;
+	}
+
+	@ConfigItem(
+		keyName = "showDebug",
+		name = "Show Debug",
+		description = "Shows debug information in the overlay."
+	)
+	default boolean showDebug()
+	{
+		return false;
 	}
 }

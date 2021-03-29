@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 public class RandomEventAnalyticsLocalStorage
 {
 	private static final String FILE_EXTENSION = ".log";
-	private static final File LOOT_RECORD_DIR = new File(RUNELITE_DIR, "random-event-analytics");
+	private static final File RANDOM_EVENT_RECORD_DIR = new File(RUNELITE_DIR, "random-event-analytics");
 	private static final String RANDOM_EVENTS_FILE = "random-events";
 	private static final Logger log = LoggerFactory.getLogger(RandomEventAnalyticsLocalStorage.class);
 	// Data is stored in a folder with the players username (login name)
@@ -31,7 +31,7 @@ public class RandomEventAnalyticsLocalStorage
 	@Inject
 	public RandomEventAnalyticsLocalStorage()
 	{
-		LOOT_RECORD_DIR.mkdir();
+		RANDOM_EVENT_RECORD_DIR.mkdir();
 	}
 
 
@@ -42,7 +42,7 @@ public class RandomEventAnalyticsLocalStorage
 			return;
 		}
 
-		playerFolder = new File(LOOT_RECORD_DIR, username);
+		playerFolder = new File(RANDOM_EVENT_RECORD_DIR, username);
 		playerFolder.mkdir();
 		this.username = username;
 	}

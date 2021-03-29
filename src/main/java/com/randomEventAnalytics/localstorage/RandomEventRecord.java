@@ -13,4 +13,5 @@ public class RandomEventRecord
 	public final NpcInfoRecord npcInfoRecord;
 	public final PlayerInfoRecord playerInfoRecord;
 	public final XpInfoRecord xpInfoRecord;
+	private final int secondsInInstance;
 }

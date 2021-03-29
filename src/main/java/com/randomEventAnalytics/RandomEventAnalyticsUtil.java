@@ -104,7 +104,7 @@ public class RandomEventAnalyticsUtil
 				true
 			));
 			put(NpcID.FREAKY_FORESTER_6748, new NpcIdWrapper(
-				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/sergeant_damien.png")),
+				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/freaky_forester.png")),
 				false,
 				true
 			));
@@ -136,7 +136,7 @@ public class RandomEventAnalyticsUtil
 				true
 			);
 			put(NpcID.EVIL_BOB, evilBob);
-			put(NpcID.EVIL_BOB_6754, evilBob);
+			put(NpcID.EVIL_BOB_6754, evilBob); // Pete
 
 			put(NpcID.LEO_6746, new NpcIdWrapper(
 				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/leo.png")),
@@ -150,10 +150,10 @@ public class RandomEventAnalyticsUtil
 				true
 			);
 			// TODO: Determine which of these are maze/mime to better describe "isAvailableInWilderness"
-			put(NpcID.MYSTERIOUS_OLD_MAN_6750, mysteriousOldMan);
+			put(NpcID.MYSTERIOUS_OLD_MAN_6750, mysteriousOldMan); // Rick Turpentine style
 			put(NpcID.MYSTERIOUS_OLD_MAN_6751, mysteriousOldMan);
-			put(NpcID.MYSTERIOUS_OLD_MAN_6752, mysteriousOldMan);
-			put(NpcID.MYSTERIOUS_OLD_MAN_6753, mysteriousOldMan);
+			put(NpcID.MYSTERIOUS_OLD_MAN_6752, mysteriousOldMan); // Maze
+			put(NpcID.MYSTERIOUS_OLD_MAN_6753, mysteriousOldMan); // Mime
 
 			put(NpcID.QUIZ_MASTER_6755, new NpcIdWrapper(
 				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/quiz_master.png")),
