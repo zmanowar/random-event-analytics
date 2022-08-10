@@ -10,6 +10,7 @@ import java.awt.image.BufferedImage;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Actor;
@@ -411,12 +412,15 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		int maximumXpHr = xpTrackerService.getXpHr(Skill.AGILITY);
 		int newSkillActionsHr = -1;
 		int newSkillXpHr = -1;
+		HashMap<String, Integer> xpPerSkill = new HashMap<>();
+
 		for (Skill skill : Skill.values())
 		{
 			if (skill.equals(Skill.OVERALL))
 			{
 				continue;
 			}
+			xpPerSkill.put(skill.getName(), client.getSkillExperience(skill));
 			newSkillActionsHr = xpTrackerService.getActionsHr(skill);
 			newSkillXpHr = xpTrackerService.getXpHr(skill);
 			if (newSkillActionsHr > xpTrackerService.getActionsHr(maximumActionsHrSkill))
@@ -437,7 +441,8 @@ public class RandomEventAnalyticsPlugin extends Plugin
 			maximumActionsHr,
 			maximumXpHrSkill.getName(),
 			maximumXpHr,
-			client.getOverallExperience()
+			client.getOverallExperience(),
+			xpPerSkill
 		);
 
 	}

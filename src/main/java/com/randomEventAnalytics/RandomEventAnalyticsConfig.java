@@ -3,6 +3,7 @@ package com.randomEventAnalytics;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
+import net.runelite.client.config.ConfigSection;
 
 @ConfigGroup(RandomEventAnalyticsConfig.CONFIG_GROUP)
 public interface RandomEventAnalyticsConfig extends Config
@@ -29,13 +30,23 @@ public interface RandomEventAnalyticsConfig extends Config
 	)
 	default boolean enableOverlay()
 	{
-		return true;
+		return false;
 	}
+
+	@ConfigSection(
+		name = "Experimental",
+		description = "Experimental features. May have a negative impact on performance.",
+		position = 0,
+		closedByDefault = true
+	)
+	String experimentalSection = "experimental";
+
 
 	@ConfigItem(
 		keyName = "showDebug",
 		name = "Show Debug",
-		description = "Shows debug information in the overlay."
+		description = "Shows debug information in the overlay.",
+		section = experimentalSection
 	)
 	default boolean showDebug()
 	{

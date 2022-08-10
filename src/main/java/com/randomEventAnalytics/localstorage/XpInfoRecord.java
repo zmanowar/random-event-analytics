@@ -1,5 +1,6 @@
 package com.randomEventAnalytics.localstorage;
 
+import java.util.HashMap;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -14,4 +15,5 @@ public class XpInfoRecord
 	public final String maximumXpHrSkillName;
 	public final int maximumXpHr;
 	public final long overallExperience;
+	public final HashMap<String, Integer> xpPerSkill;
 }

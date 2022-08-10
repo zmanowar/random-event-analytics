@@ -63,7 +63,6 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 		estimationInfo.add(new JLabel("Random Event Estimation"));
 		estimationInfo.add(estimationUntilNext);
 
-
 		estimationPanel.add(
 			new JLabel(new ImageIcon(ImageUtil.loadImageResource(getClass(), "estimation_icon.png"))),
 			BorderLayout.WEST
