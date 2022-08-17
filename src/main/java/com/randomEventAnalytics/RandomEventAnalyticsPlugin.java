@@ -103,6 +103,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 			.tooltip("Random Event Analytics")
 			.icon(icon)
 			.panel(panel)
+			.priority(7)
 			.build();
 
 		clientToolbar.addNavigation(navButton);
