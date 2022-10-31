@@ -158,14 +158,13 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		}
 	}
 
-	private int getInitialSecondsInInstance()
-	{
+	private int getIntFromProfileConfig(String key) {
 		try
 		{
 			return configManager.getConfiguration(
 				RandomEventAnalyticsConfig.CONFIG_GROUP,
 				profile,
-				RandomEventAnalyticsConfig.SECONDS_IN_INSTANCE,
+				key,
 				int.class);
 		}
 		catch (NullPointerException e)
@@ -173,42 +172,22 @@ public class RandomEventAnalyticsPlugin extends Plugin
 			log.debug("No config loaded for: {}", profile);
 			return 0;
 		}
+	}
+
+	private int getInitialSecondsInInstance()
+	{
+		return getIntFromProfileConfig(RandomEventAnalyticsConfig.SECONDS_IN_INSTANCE);
 	}
 
 	private int getInitialSecondsSinceLastRandom()
 	{
-		try
-		{
-			return configManager.getConfiguration(
-				RandomEventAnalyticsConfig.CONFIG_GROUP,
-				profile,
-				RandomEventAnalyticsConfig.SECONDS_SINCE_LAST_RANDOM,
-				int.class);
-		}
-		catch (NullPointerException e)
-		{
-			log.debug("No config loaded for: {}", profile);
-			return 0;
-		}
+		return getIntFromProfileConfig(RandomEventAnalyticsConfig.SECONDS_SINCE_LAST_RANDOM);
 	}
 
 	private int getInitialTicksSinceLastRandom()
 	{
-		try
-		{
-			return configManager.getConfiguration(
-				RandomEventAnalyticsConfig.CONFIG_GROUP,
-				profile,
-				RandomEventAnalyticsConfig.TICKS_SINCE_LAST_RANDOM,
-				int.class);
-		}
-		catch (NullPointerException e)
-		{
-			log.debug("No config loaded for: {}", profile);
-			return 0;
-		}
+		return getIntFromProfileConfig(RandomEventAnalyticsConfig.TICKS_SINCE_LAST_RANDOM);
 	}
-
 
 	private synchronized void loadPreviousRandomEvents()
 	{
@@ -261,8 +240,8 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		if (isStrangePlant(npc.getId()))
 		{
 			Player player = client.getLocalPlayer();
-			log.debug("Distance to plant: {}", player.getWorldLocation().distanceTo(npc.getWorldLocation()));
-			if (player.getWorldLocation().distanceTo(npc.getWorldLocation()) == STRANGE_PLANT_SPAWN_RADIUS) {
+			if (player.getWorldLocation().distanceTo(npc.getWorldLocation()) == STRANGE_PLANT_SPAWN_RADIUS)
+			{
 				/**
 				 * Unfortunately we cannot determine if the Strange Plant belongs to the player
 				 * (See onInteractingChange)

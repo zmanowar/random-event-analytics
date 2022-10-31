@@ -107,7 +107,6 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 
 	public void addRandom(RandomEventRecord record)
 	{
-		log.debug("Adding " + record.npcInfoRecord.npcName);
 		SwingUtilities.invokeLater(() -> {
 			RandomEventRecordBox recordBox = new RandomEventRecordBox(this, record);
 			eventPanel.add(recordBox, 0);
@@ -117,7 +116,6 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 
 	public void addUnconfirmedRandom(RandomEventRecord record)
 	{
-		log.debug("Adding " + record.npcInfoRecord.npcName + " (unconfirmed)");
 		SwingUtilities.invokeLater(() -> {
 			RandomEventRecordBox recordBox = new RandomEventRecordBox(this, record, false);
 			eventPanel.add(recordBox, 0);
