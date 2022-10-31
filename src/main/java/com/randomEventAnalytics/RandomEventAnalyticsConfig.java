@@ -1,5 +1,6 @@
 package com.randomEventAnalytics;
 
+import java.awt.Color;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
@@ -25,7 +26,7 @@ public interface RandomEventAnalyticsConfig extends Config
 
 	@ConfigItem(
 		keyName = "enableOverlay",
-		name = "Enable Overlay",
+		name = "Enable Timing Overlay",
 		description = "Show the Random Events overlay. Enable Estimation must be enabled."
 	)
 	default boolean enableOverlay()
@@ -34,9 +35,42 @@ public interface RandomEventAnalyticsConfig extends Config
 	}
 
 	@ConfigSection(
+		name = "Random Event Helpers",
+		description = "Configuration items for random event helpers",
+		position = 0,
+		closedByDefault = false
+	)
+	String helperSection = "helpers";
+
+	@ConfigItem(
+		keyName = "enableHelpers",
+		name = "Enable Random Event Helper Overlay",
+		description = "Highlights the correct answers for some random events",
+		section = helperSection
+	)
+	default boolean enableHelpers() {return true;}
+
+	@ConfigItem(
+		keyName = "helperHighlightColor",
+		name = "Helper Highlight Color",
+		description = "Color for helper highlighter overlay",
+		section = helperSection
+	)
+	default Color helperHighlightColor() {return Color.GREEN;}
+
+	@ConfigItem(
+		keyName = "helperHighlightTextColor",
+		name = "Helper Highlight Text Color",
+		description = "Color for helper text overlay",
+		section = helperSection
+	)
+	default Color helperTextColor() {return Color.WHITE;}
+
+
+	@ConfigSection(
 		name = "Experimental",
 		description = "Experimental features. May have a negative impact on performance.",
-		position = 0,
+		position = 1,
 		closedByDefault = true
 	)
 	String experimentalSection = "experimental";

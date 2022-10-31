@@ -13,8 +13,10 @@ repositories {
 def runeLiteVersion = 'latest.release'
 
 dependencies {
-	compileOnly group: 'net.runelite', name:'client', version: runeLiteVersion
-
+    compileOnly group: 'net.runelite', name:'client', version: runeLiteVersion
+    implementation group: 'com.google.inject.extensions', name: 'guice-multibindings', version: '4.1.0', {
+        exclude group: 'com.google.inject'
+    }
 	compileOnly 'org.projectlombok:lombok:1.18.4'
 	annotationProcessor 'org.projectlombok:lombok:1.18.4'
 

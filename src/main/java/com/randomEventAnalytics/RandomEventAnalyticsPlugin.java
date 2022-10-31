@@ -1,6 +1,10 @@
 package com.randomEventAnalytics;
 
+import com.google.inject.Binder;
+import com.google.inject.Injector;
 import com.google.inject.Provides;
+import com.randomEventAnalytics.module.ComponentManager;
+import com.randomEventAnalytics.module.RandomEventHelperModule;
 import com.randomEventAnalytics.localstorage.NpcInfoRecord;
 import com.randomEventAnalytics.localstorage.PlayerInfoRecord;
 import com.randomEventAnalytics.localstorage.RandomEventAnalyticsLocalStorage;
@@ -72,7 +76,9 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	private Notifier notifier;
 	@Inject
 	private XpTrackerService xpTrackerService;
-
+	@Inject
+	private Injector injector;
+	private ComponentManager componentManager = null;
 	private RandomEventAnalyticsPanel panel;
 	private String profile;
 	private int lastNotificationTick = -RANDOM_EVENT_TIMEOUT;
@@ -82,6 +88,12 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	RandomEventAnalyticsConfig provideConfig(ConfigManager configManager)
 	{
 		return configManager.getConfig(RandomEventAnalyticsConfig.class);
+	}
+
+	@Override
+	public void configure(Binder binder)
+	{
+		binder.install(new RandomEventHelperModule());
 	}
 
 	@Override
@@ -95,6 +107,12 @@ public class RandomEventAnalyticsPlugin extends Plugin
 			NavigationButton.builder().tooltip("Random Event Analytics").icon(icon).panel(panel).priority(7).build();
 
 		clientToolbar.addNavigation(navButton);
+
+		if (componentManager == null)
+		{
+			componentManager = injector.getInstance(ComponentManager.class);
+		}
+		componentManager.onPluginStart();
 	}
 
 	@Override
@@ -104,6 +122,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		lastNotificationTick = 0;
 		clientToolbar.removeNavigation(navButton);
 		overlayManager.remove(overlay);
+		componentManager.onPluginStop();
 	}
 
 	@Subscribe
