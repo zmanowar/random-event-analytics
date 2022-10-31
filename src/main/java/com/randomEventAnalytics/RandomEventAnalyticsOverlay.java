@@ -13,21 +13,20 @@ import net.runelite.client.ui.overlay.components.TitleComponent;
 
 public class RandomEventAnalyticsOverlay extends Overlay
 {
-	private static String TIME_UNTIL_LABEL = "Estimate: ";
-	private static String OVERESTIMATE_LABEL = "Overestimate: ";
-	private static String TITLE_LABEL = "Random Event";
+	private static final String TIME_UNTIL_LABEL = "Estimate: ";
+	private static final String OVERESTIMATE_LABEL = "Overestimate: ";
+	private static final String TITLE_LABEL = "Random Event";
 	private final RandomEventAnalyticsConfig config;
 	private final PanelComponent panelComponent = new PanelComponent();
-	private int estimatedSeconds;
-	private int secondsInInstance;
-	private int ticksSinceLastRandomEvent;
+	private final RandomEventAnalyticsTimeTracking timeTracking;
 
 	@Inject
-	private RandomEventAnalyticsOverlay(RandomEventAnalyticsConfig config)
+	private RandomEventAnalyticsOverlay(RandomEventAnalyticsConfig config,
+										RandomEventAnalyticsTimeTracking timeTracking)
 	{
 		setPosition(OverlayPosition.ABOVE_CHATBOX_RIGHT);
-		estimatedSeconds = 0;
 		this.config = config;
+		this.timeTracking = timeTracking;
 	}
 
 	@Override
@@ -38,6 +37,8 @@ public class RandomEventAnalyticsOverlay extends Overlay
 			return null;
 		}
 		panelComponent.getChildren().clear();
+
+		int estimatedSeconds = timeTracking.getNextRandomEventEstimation();
 
 		// Build overlay title
 		panelComponent.getChildren().add(TitleComponent.builder()
@@ -54,36 +55,15 @@ public class RandomEventAnalyticsOverlay extends Overlay
 		{
 			panelComponent.getChildren().add(LineComponent.builder()
 				.left("Ticks: ")
-				.right(String.valueOf(ticksSinceLastRandomEvent))
+				.right(String.valueOf(timeTracking.getTicksSinceLastRandomEvent()))
 				.build());
 
 			panelComponent.getChildren().add(LineComponent.builder()
 				.left("Instance: ")
-				.right(String.valueOf(secondsInInstance))
+				.right(String.valueOf(timeTracking.getSecondsInInstance()))
 				.build());
 		}
 
 		return panelComponent.render(graphics);
 	}
-
-	public void updateEstimation(final int estimatedSeconds)
-	{
-		SwingUtilities.invokeLater(() -> {
-			this.estimatedSeconds = estimatedSeconds;
-		});
-	}
-
-	public void updateTicksSinceLastRandomEvent(final int ticksSinceLastRandomEvent)
-	{
-		SwingUtilities.invokeLater(() -> {
-			this.ticksSinceLastRandomEvent = ticksSinceLastRandomEvent;
-		});
-	}
-
-	public void updateSecondsInInstance(final int secondsInInstance) {
-		SwingUtilities.invokeLater(() -> {
-			this.secondsInInstance = secondsInInstance;
-		});
-	}
-
 }

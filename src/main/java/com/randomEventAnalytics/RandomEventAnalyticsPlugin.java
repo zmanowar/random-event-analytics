@@ -10,7 +10,6 @@ import java.awt.image.BufferedImage;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Actor;
@@ -20,9 +19,6 @@ import net.runelite.api.GameState;
 import net.runelite.api.NPC;
 import net.runelite.api.NpcID;
 import net.runelite.api.Player;
-import net.runelite.api.Skill;
-import net.runelite.api.coords.LocalPoint;
-import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.InteractingChanged;
@@ -46,15 +42,14 @@ import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.ImageUtil;
 
 @Slf4j
-@PluginDescriptor(
-	name = "Random Event Analytics"
-)
+@PluginDescriptor(name = "Random Event Analytics")
 @PluginDependency(XpTrackerPlugin.class)
 public class RandomEventAnalyticsPlugin extends Plugin
 {
 	private static final int RANDOM_EVENT_TIMEOUT = 150;
 	private static final int STRANGE_PLANT_SPAWN_RADIUS = 1;
-	private final String PLANT_SPAWNED_NOTIFICATION_MESSAGE = "A Strange Plant has spawned, please visit the Random Event Analytics panel to confirm the random.";
+	private final String PLANT_SPAWNED_NOTIFICATION_MESSAGE =
+		"A Strange Plant has spawned, please visit the Random " + "Event Analytics panel to confirm the random.";
 	@Inject
 	private ConfigManager configManager;
 	@Inject
@@ -68,6 +63,8 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	@Inject
 	private RandomEventAnalyticsLocalStorage localStorage;
 	@Inject
+	private RandomEventAnalyticsTimeTracking timeTracking;
+	@Inject
 	private ClientToolbar clientToolbar;
 	@Inject
 	private ChatMessageManager chatMessageManager;
@@ -77,11 +74,6 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	private XpTrackerService xpTrackerService;
 
 	private RandomEventAnalyticsPanel panel;
-
-	private int secondsPerRandomEvent = 60 * 60;
-	private int secondsSinceLastRandomEvent = 0;
-	private int ticksSinceLastRandomEvent = 0;
-	private int secondsInInstance = 0;
 	private String profile;
 	private int lastNotificationTick = -RANDOM_EVENT_TIMEOUT;
 	private NavigationButton navButton;
@@ -96,15 +88,11 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	protected void startUp() throws Exception
 	{
 		overlayManager.add(overlay);
-		panel = new RandomEventAnalyticsPanel(this, config, client);
+		panel = injector.getInstance(RandomEventAnalyticsPanel.class);
 		final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "random_event_analytics.png");
 
-		navButton = NavigationButton.builder()
-			.tooltip("Random Event Analytics")
-			.icon(icon)
-			.panel(panel)
-			.priority(7)
-			.build();
+		navButton =
+			NavigationButton.builder().tooltip("Random Event Analytics").icon(icon).panel(panel).priority(7).build();
 
 		clientToolbar.addNavigation(navButton);
 	}
@@ -114,8 +102,8 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	{
 		updateConfig();
 		lastNotificationTick = 0;
-		overlayManager.removeIf(e -> e instanceof RandomEventAnalyticsOverlay);
 		clientToolbar.removeNavigation(navButton);
+		overlayManager.remove(overlay);
 	}
 
 	@Subscribe
@@ -142,51 +130,44 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		GameState state = gameStateChanged.getGameState();
 		if (state == GameState.LOGGED_IN)
 		{
-			profile = configManager.getRSProfileKey();
-			localStorage.setPlayerUsername(client.getUsername());
-			secondsSinceLastRandomEvent = getInitialSecondsSinceLastRandom();
-			ticksSinceLastRandomEvent = getInitialTicksSinceLastRandom();
-			secondsInInstance = getInitialSecondsInInstance();
-			loadPreviousRandomEvents();
+			final long hash = client.getAccountHash();
+			if (String.valueOf(hash).equalsIgnoreCase(localStorage.getUsername()))
+			{
+				return;
+			}
+
+			String username = client.getUsername();
+			if (username != null && username.length() > 0 && hash != -1)
+			{
+				localStorage.renameUsernameFolderToAccountHash(username, hash);
+			}
+
+			if (localStorage.setPlayerUsername(String.valueOf(hash)))
+			{
+				profile = configManager.getRSProfileKey();
+				timeTracking.init(getIntFromProfileConfig(RandomEventAnalyticsConfig.SECONDS_SINCE_LAST_RANDOM),
+					getIntFromProfileConfig(RandomEventAnalyticsConfig.SECONDS_IN_INSTANCE),
+					getIntFromProfileConfig(RandomEventAnalyticsConfig.TICKS_SINCE_LAST_RANDOM));
+				loadPreviousRandomEvents();
+			}
 		}
-		if (state == GameState.CONNECTION_LOST || state == GameState.HOPPING
-			|| state == GameState.LOGIN_SCREEN || state == GameState.UNKNOWN
-			|| state == GameState.LOADING
-		)
+		else if (state == GameState.CONNECTION_LOST || state == GameState.HOPPING || state == GameState.LOGIN_SCREEN || state == GameState.UNKNOWN || state == GameState.LOADING)
 		{
 			updateConfig();
 		}
 	}
 
-	private int getIntFromProfileConfig(String key) {
+	private int getIntFromProfileConfig(String key)
+	{
 		try
 		{
-			return configManager.getConfiguration(
-				RandomEventAnalyticsConfig.CONFIG_GROUP,
-				profile,
-				key,
-				int.class);
+			return configManager.getConfiguration(RandomEventAnalyticsConfig.CONFIG_GROUP, profile, key, int.class);
 		}
 		catch (NullPointerException e)
 		{
 			log.debug("No config loaded for: {}", profile);
 			return 0;
 		}
-	}
-
-	private int getInitialSecondsInInstance()
-	{
-		return getIntFromProfileConfig(RandomEventAnalyticsConfig.SECONDS_IN_INSTANCE);
-	}
-
-	private int getInitialSecondsSinceLastRandom()
-	{
-		return getIntFromProfileConfig(RandomEventAnalyticsConfig.SECONDS_SINCE_LAST_RANDOM);
-	}
-
-	private int getInitialTicksSinceLastRandom()
-	{
-		return getIntFromProfileConfig(RandomEventAnalyticsConfig.TICKS_SINCE_LAST_RANDOM);
 	}
 
 	private synchronized void loadPreviousRandomEvents()
@@ -207,11 +188,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		Player player = client.getLocalPlayer();
 		// Check that the npc is interacting with the player and the player isn't interacting with the npc, so
 		// that the notification doesn't fire from talking to other user's randoms
-		if (player == null
-			|| target != player
-			|| player.getInteracting() == source
-			|| !(source instanceof NPC)
-			|| !RandomEventAnalyticsUtil.getEventNpcIds().contains(((NPC) source).getId()))
+		if (player == null || target != player || player.getInteracting() == source || !(source instanceof NPC) || !RandomEventAnalyticsUtil.getEventNpcIds().contains(((NPC) source).getId()))
 		{
 			return;
 		}
@@ -250,35 +227,19 @@ public class RandomEventAnalyticsPlugin extends Plugin
 				 */
 				RandomEventRecord record = createRandomEventRecord(npc);
 				panel.addUnconfirmedRandom(record);
-				chatMessageManager.queue(QueuedMessage.builder()
-					.type(ChatMessageType.CONSOLE)
-					.runeLiteFormattedMessage(PLANT_SPAWNED_NOTIFICATION_MESSAGE)
-					.build());
+				chatMessageManager.queue(QueuedMessage.builder().type(ChatMessageType.CONSOLE).runeLiteFormattedMessage(PLANT_SPAWNED_NOTIFICATION_MESSAGE).build());
 				notifier.notify(PLANT_SPAWNED_NOTIFICATION_MESSAGE);
 			}
 		}
 	}
 
-	@Schedule(
-		period = 1,
-		unit = ChronoUnit.SECONDS
-	)
+	@Schedule(period = 1, unit = ChronoUnit.SECONDS)
 	public void timeSchedule()
 	{
 		if (client.getGameState() == GameState.LOGGED_IN)
 		{
-			secondsSinceLastRandomEvent += 1;
-			if (client.isInInstancedRegion())
-			{
-				secondsInInstance += 1;
-			}
-			if (config.enableEstimation())
-			{
-				int estimatedSeconds = getNextRandomEventEstimation();
-				overlay.updateEstimation(estimatedSeconds);
-				overlay.updateSecondsInInstance(secondsInInstance);
-				panel.updateEstimation(estimatedSeconds);
-			}
+			timeTracking.incrementSeconds();
+			panel.updateEstimation();
 		}
 	}
 
@@ -287,9 +248,18 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	{
 		if (client.getGameState() == GameState.LOGGED_IN)
 		{
-			ticksSinceLastRandomEvent += 1;
-			overlay.updateTicksSinceLastRandomEvent(ticksSinceLastRandomEvent);
+			timeTracking.incrementTicks();
 		}
+	}
+
+	private void updateConfig()
+	{
+		configManager.setConfiguration(RandomEventAnalyticsConfig.CONFIG_GROUP, profile,
+			RandomEventAnalyticsConfig.SECONDS_SINCE_LAST_RANDOM, timeTracking.getSecondsSinceLastRandomEvent());
+		configManager.setConfiguration(RandomEventAnalyticsConfig.CONFIG_GROUP, profile,
+			RandomEventAnalyticsConfig.TICKS_SINCE_LAST_RANDOM, timeTracking.getTicksSinceLastRandomEvent());
+		configManager.setConfiguration(RandomEventAnalyticsConfig.CONFIG_GROUP, profile,
+			RandomEventAnalyticsConfig.SECONDS_IN_INSTANCE, timeTracking.getSecondsInInstance());
 	}
 
 	public void addRandomEvent(final NPC npc)
@@ -301,13 +271,16 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	{
 		localStorage.addRandomEventRecord(record);
 		panel.addRandom(record);
-		secondsSinceLastRandomEvent = 0;
-		ticksSinceLastRandomEvent = 0;
-		secondsInInstance = 0;
+		timeTracking.reset();
+
+		/**
+		 * The strange plant is added after the confirmation is clicked. This offsets
+		 * our timers since the time the plant spawned.
+		 * TODO: Determine if there's a way to correctly set ticksSinceLastRandom
+		 */
 		if (isStrangePlant(record.npcInfoRecord.npcId))
 		{
-			secondsSinceLastRandomEvent = (int) (new Date().getTime() - record.spawnedTime) / 1000;
-			ticksSinceLastRandomEvent = 0;
+			timeTracking.setSecondsSinceLastRandomEvent((int) (new Date().getTime() - record.spawnedTime) / 1000);
 		}
 		updateConfig();
 	}
@@ -315,116 +288,12 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	private RandomEventRecord createRandomEventRecord(final NPC npc)
 	{
 		Player player = client.getLocalPlayer();
-		PlayerInfoRecord playerInfoRecord = createPlayerInfoRecord(player);
-		NpcInfoRecord npcInfoRecord = createNpcInfoRecord(npc);
-		XpInfoRecord xpInfoRecord = createXpInfoRecord();
-		RandomEventRecord record = new RandomEventRecord(
-			new Date().getTime(),
-			secondsSinceLastRandomEvent,
-			ticksSinceLastRandomEvent,
-			npcInfoRecord,
-			playerInfoRecord,
-			xpInfoRecord,
-			secondsInInstance
-		);
+		PlayerInfoRecord playerInfoRecord = PlayerInfoRecord.create(player);
+		NpcInfoRecord npcInfoRecord = NpcInfoRecord.create(npc);
+		XpInfoRecord xpInfoRecord = XpInfoRecord.create(client, xpTrackerService);
+		RandomEventRecord record = new RandomEventRecord(new Date().getTime(), timeTracking, npcInfoRecord,
+			playerInfoRecord, xpInfoRecord);
 		return record;
-	}
-
-	private void updateConfig()
-	{
-		configManager.setConfiguration(
-			RandomEventAnalyticsConfig.CONFIG_GROUP,
-			profile,
-			RandomEventAnalyticsConfig.SECONDS_SINCE_LAST_RANDOM,
-			secondsSinceLastRandomEvent);
-		configManager.setConfiguration(
-			RandomEventAnalyticsConfig.CONFIG_GROUP,
-			profile,
-			RandomEventAnalyticsConfig.TICKS_SINCE_LAST_RANDOM,
-			ticksSinceLastRandomEvent);
-		configManager.setConfiguration(
-			RandomEventAnalyticsConfig.CONFIG_GROUP,
-			profile,
-			RandomEventAnalyticsConfig.SECONDS_IN_INSTANCE,
-			secondsInInstance);
-	}
-
-	private int getNextRandomEventEstimation()
-	{
-		return secondsPerRandomEvent - secondsSinceLastRandomEvent;
-	}
-
-	private NpcInfoRecord createNpcInfoRecord(NPC npc)
-	{
-		LocalPoint npcLocalLocation = npc.getLocalLocation();
-		WorldPoint npcWorldLocation = npc.getWorldLocation();
-		return new NpcInfoRecord(
-			npc.getId(),
-			npc.getName(),
-			npc.getCombatLevel(),
-			npcLocalLocation.getX(),
-			npcLocalLocation.getY(),
-			npcWorldLocation.getX(),
-			npcWorldLocation.getY(),
-			npcWorldLocation.getPlane()
-		);
-	}
-
-	private PlayerInfoRecord createPlayerInfoRecord(Player player)
-	{
-		LocalPoint playerLocalLocation = player.getLocalLocation();
-		WorldPoint playerWorldLocation = player.getWorldLocation();
-		return new PlayerInfoRecord(
-			player.getCombatLevel(),
-			playerLocalLocation.getX(),
-			playerLocalLocation.getY(),
-			playerWorldLocation.getX(),
-			playerWorldLocation.getY(),
-			playerWorldLocation.getPlane()
-		);
-	}
-
-	private XpInfoRecord createXpInfoRecord()
-	{
-		Skill maximumActionsHrSkill = Skill.AGILITY;
-		int maximumActionsHr = xpTrackerService.getActionsHr(Skill.AGILITY);
-		Skill maximumXpHrSkill = Skill.AGILITY;
-		int maximumXpHr = xpTrackerService.getXpHr(Skill.AGILITY);
-		int newSkillActionsHr = -1;
-		int newSkillXpHr = -1;
-		HashMap<String, Integer> xpPerSkill = new HashMap<>();
-
-		for (Skill skill : Skill.values())
-		{
-			if (skill.equals(Skill.OVERALL))
-			{
-				continue;
-			}
-			xpPerSkill.put(skill.getName(), client.getSkillExperience(skill));
-			newSkillActionsHr = xpTrackerService.getActionsHr(skill);
-			newSkillXpHr = xpTrackerService.getXpHr(skill);
-			if (newSkillActionsHr > xpTrackerService.getActionsHr(maximumActionsHrSkill))
-			{
-				maximumActionsHrSkill = skill;
-				maximumActionsHr = newSkillActionsHr;
-			}
-			if (newSkillXpHr > xpTrackerService.getXpHr(maximumXpHrSkill))
-			{
-				maximumXpHrSkill = skill;
-				maximumXpHr = newSkillXpHr;
-			}
-		}
-		return new XpInfoRecord(
-			xpTrackerService.getActionsHr(Skill.OVERALL),
-			xpTrackerService.getXpHr(Skill.OVERALL),
-			maximumActionsHrSkill.getName(),
-			maximumActionsHr,
-			maximumXpHrSkill.getName(),
-			maximumXpHr,
-			client.getOverallExperience(),
-			xpPerSkill
-		);
-
 	}
 
 	private boolean isStrangePlant(int npcId)

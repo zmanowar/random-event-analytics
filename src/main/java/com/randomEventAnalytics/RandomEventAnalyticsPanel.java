@@ -1,5 +1,6 @@
 package com.randomEventAnalytics;
 
+import com.google.inject.Inject;
 import com.randomEventAnalytics.localstorage.RandomEventRecord;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -18,12 +19,9 @@ import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
 import net.runelite.client.util.ImageUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class RandomEventAnalyticsPanel extends PluginPanel
 {
-	private static final Logger log = LoggerFactory.getLogger(RandomEventAnalyticsPanel.class);
 	private final ArrayList<RandomEventRecordBox> infoBoxes = new ArrayList<RandomEventRecordBox>();
 
 	private final JPanel estimationPanel = new JPanel();
@@ -32,11 +30,15 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 	private final Client client;
 	private final JLabel estimationUntilNext = new JLabel(RandomEventAnalyticsUtil.htmlLabel("Next Event: ", "--:--"));
 	private final JLabel inInstanceIcon = new JLabel("\u26A0");
+	RandomEventAnalyticsTimeTracking timeTracking;
 	RandomEventAnalyticsPlugin plugin;
 
-	RandomEventAnalyticsPanel(RandomEventAnalyticsPlugin plugin, RandomEventAnalyticsConfig config, Client client)
+	@Inject
+	RandomEventAnalyticsPanel(RandomEventAnalyticsPlugin plugin, RandomEventAnalyticsConfig config,
+							  RandomEventAnalyticsTimeTracking timeTracking, Client client)
 	{
 		super();
+		this.timeTracking = timeTracking;
 		this.plugin = plugin;
 		this.config = config;
 		this.client = client;
@@ -63,10 +65,8 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 		estimationInfo.add(new JLabel("Random Event Estimation"));
 		estimationInfo.add(estimationUntilNext);
 
-		estimationPanel.add(
-			new JLabel(new ImageIcon(ImageUtil.loadImageResource(getClass(), "estimation_icon.png"))),
-			BorderLayout.WEST
-		);
+		estimationPanel.add(new JLabel(new ImageIcon(ImageUtil.loadImageResource(getClass(), "estimation_icon.png"))),
+			BorderLayout.WEST);
 
 		estimationPanel.add(estimationInfo);
 		setupInInstanceIcon();
@@ -128,15 +128,18 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 		estimationPanel.setVisible(config.enableEstimation());
 	}
 
-	public void updateEstimation(int estimatedSeconds)
+	public void updateEstimation()
 	{
-		SwingUtilities.invokeLater(() -> updateEstimatedSecondsAsync(estimatedSeconds));
-	}
-
-	private void updateEstimatedSecondsAsync(int estimatedSeconds)
-	{
-		inInstanceIcon.setVisible(client.isInInstancedRegion());
-		String label = estimatedSeconds >= 0 ? "Next Event: " : "Overestimate: ";
-		estimationUntilNext.setText(RandomEventAnalyticsUtil.htmlLabel(label, RandomEventAnalyticsUtil.formatSeconds(Math.abs(estimatedSeconds))));
+		if (!config.enableEstimation())
+		{
+			return;
+		}
+		SwingUtilities.invokeLater(() -> {
+			int estimatedSeconds = timeTracking.getNextRandomEventEstimation();
+			inInstanceIcon.setVisible(client.isInInstancedRegion());
+			String label = estimatedSeconds >= 0 ? "Next Event: " : "Overestimate: ";
+			estimationUntilNext.setText(RandomEventAnalyticsUtil.htmlLabel(label,
+				RandomEventAnalyticsUtil.formatSeconds(Math.abs(estimatedSeconds))));
+		});
 	}
 }

@@ -16,8 +16,8 @@ import net.runelite.client.ui.FontManager;
 
 public class RandomEventRecordBox extends JPanel
 {
-	private RandomEventAnalyticsPanel panel;
-	private RandomEventRecord randomEvent;
+	private final RandomEventAnalyticsPanel panel;
+	private final RandomEventRecord randomEvent;
 
 	RandomEventRecordBox(RandomEventAnalyticsPanel panel, RandomEventRecord randomEvent)
 	{
@@ -33,22 +33,11 @@ public class RandomEventRecordBox extends JPanel
 
 	private static String buildToolTip(RandomEventRecord record)
 	{
-		String data = "<html> "
-			+ "NPC ID: " + record.npcInfoRecord.npcId
-			+ "<br>NPC Combat Level: " + record.npcInfoRecord.combatLevel
-			+ "<br>\u0394 Event Time: " + RandomEventAnalyticsUtil.formatSeconds(record.secondsSinceLastRandomEvent)
-			+ "<br>Spawned Time: " + new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(record.spawnedTime)
-			+ "<br>XP/Hr: " + RandomEventAnalyticsUtil.formatNumber(record.xpInfoRecord.totalXpHr)
-			+ "<br>Total XP: " + RandomEventAnalyticsUtil.formatNumber(record.xpInfoRecord.overallExperience);
-		data += "<br>PlayerLocal: <p style=\"font-size: 0.95em\">"
-			+ "(X: " + record.playerInfoRecord.localX
-			+ " , Y: " + record.playerInfoRecord.localY
-			+ ")</p>";
-		data += "World: <p style=\"font-size: 0.95em\">"
-			+ "(X: " + record.playerInfoRecord.worldX
-			+ " , Y: " + record.playerInfoRecord.worldY
-			+ " , P: " + record.playerInfoRecord.worldPlane
-			+ ")</p>";
+		String data =
+			"<html> " + "NPC ID: " + record.npcInfoRecord.npcId + "<br>NPC Combat Level: " + record.npcInfoRecord.combatLevel + "<br>\u0394 Event Time: " + RandomEventAnalyticsUtil.formatSeconds(record.secondsSinceLastRandomEvent) + "<br>Spawned Time: " + new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(record.spawnedTime) + "<br>XP/Hr: " + RandomEventAnalyticsUtil.formatNumber(record.xpInfoRecord.totalXpHr) + "<br>Total XP: " + RandomEventAnalyticsUtil.formatNumber(record.xpInfoRecord.overallExperience);
+		data += "<br>PlayerLocal: <p style=\"font-size: 0.95em\">" + "(X: " + record.playerInfoRecord.localX + " , Y: "
+			+ record.playerInfoRecord.localY + ")</p>";
+		data += "World: <p style=\"font-size: 0.95em\">" + "(X: " + record.playerInfoRecord.worldX + " , Y: " + record.playerInfoRecord.worldY + " , P: " + record.playerInfoRecord.worldPlane + ")</p>";
 		data += "</html>";
 		return data;
 
@@ -78,10 +67,7 @@ public class RandomEventRecordBox extends JPanel
 		randomInfo.add(randomName);
 		randomInfo.add(spawnTime);
 
-		this.add(
-			new JLabel(RandomEventAnalyticsUtil.getNPCIcon(record.npcInfoRecord.npcId)),
-			BorderLayout.WEST
-		);
+		this.add(new JLabel(RandomEventAnalyticsUtil.getNPCIcon(record.npcInfoRecord.npcId)), BorderLayout.WEST);
 		this.add(randomInfo);
 		this.setToolTipText(buildToolTip(record));
 		if (!isConfirmed)
