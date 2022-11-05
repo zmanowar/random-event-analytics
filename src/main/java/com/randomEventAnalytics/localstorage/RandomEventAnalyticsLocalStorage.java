@@ -22,10 +22,10 @@ import net.runelite.http.api.RuneLiteAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
+/*
  * TODO: Either break the random events into seperate files
  * or implement/import a DB system.
- **/
+ */
 public class RandomEventAnalyticsLocalStorage
 {
 	private static final String FILE_EXTENSION = ".log";
@@ -108,7 +108,11 @@ public class RandomEventAnalyticsLocalStorage
 			return false;
 		}
 
-		return usernameDir.renameTo(hashDir);
+		boolean renameSuccess = usernameDir.renameTo(hashDir);
+		if (!renameSuccess) {
+			log.warn("Was not able to rename username folder, file(s) may be in use.");
+		}
+		return renameSuccess;
 	}
 
 	public synchronized boolean addRandomEventRecord(RandomEventRecord rec)

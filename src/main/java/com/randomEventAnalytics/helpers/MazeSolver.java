@@ -20,12 +20,12 @@ import net.runelite.client.eventbus.Subscribe;
 import org.apache.commons.lang3.ArrayUtils;
 
 
-/**
+/*
  * Not sure how far I want to implement this. DFS/BFS would work fine
  * just mapping the walls and doors might be a pain. There are existing
  * path finding runelite plugins, could possible leverage one?
  * TODO: Mapping client.getCollisionMaps to tiles and determining if the player
- *  is in the correct orientation.
+ * 	is in the correct orientation.
  */
 @Slf4j
 @Singleton

@@ -30,7 +30,7 @@ public class EvilBobSolver implements SolverModuleComponent
 
 	private static Integer EVIL_BOB_MAP_REGION = 10058;
 
-	/**
+	/*
 	 * TODO: The correct fish Id is 6202. When fishing from an incorrect
 	 *  fishing spot you receive a 6206 fish. May want to highlight the
 	 *  servant if the wrong fish is in the inventory? I don't feel like

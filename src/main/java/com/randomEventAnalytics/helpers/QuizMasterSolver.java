@@ -91,6 +91,7 @@ public class QuizMasterSolver implements SolverModuleComponent
 	@Subscribe
 	public void onWidgetLoaded(WidgetLoaded event)
 	{
+		if(!isEnabled()) return;
 		if (event.getGroupId() != QUIZ_ITEM_WIDGET_GROUP_ID)
 		{
 			return;

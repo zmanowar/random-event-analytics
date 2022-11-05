@@ -35,13 +35,16 @@ public class SolverOverlay extends Overlay
 	private final MazeSolver mazeSolver;
 	private final GravediggerSolver gravediggerSolver;
 	private final DrillDemonSolver drillDemonSolver;
+	private final SurpriseExamSolver surpriseExamSolver;
+	private final CaptArnavSolver captArnavSolver;
+	private final BeekeeperSolver beekeeperSolver;
 
 	@Inject
 	SolverOverlay(Client client, RandomEventAnalyticsConfig config, EvilBobSolver evilBobSolver,
 				  EvilTwinSolver evilTwinSolver, MimeSolver mimeSolver, PinballSolver pinballSolver,
 				  SandwichLadySolver sandwichLadySolver, FreakyForesterSolver freakyForesterSolver,
 				  PrisonPeteSolver prisonPeteSolver, QuizMasterSolver quizMasterSolver, MazeSolver mazeSolver,
-				  GravediggerSolver gravediggerSolver, DrillDemonSolver drillDemonSolver) {
+				  GravediggerSolver gravediggerSolver, DrillDemonSolver drillDemonSolver, SurpriseExamSolver surpriseExamSolver, CaptArnavSolver captArnavSolver, BeekeeperSolver beekeeperSolver) {
 		this.client = client;
 		this.config = config;
 		this.evilBobSolver = evilBobSolver;
@@ -55,6 +58,9 @@ public class SolverOverlay extends Overlay
 		this.mazeSolver = mazeSolver;
 		this.gravediggerSolver = gravediggerSolver;
 		this.drillDemonSolver = drillDemonSolver;
+		this.surpriseExamSolver = surpriseExamSolver;
+		this.captArnavSolver = captArnavSolver;
+		this.beekeeperSolver = beekeeperSolver;
 
 		setPosition(OverlayPosition.DYNAMIC);
 		setLayer(OverlayLayer.ABOVE_WIDGETS);
@@ -113,7 +119,24 @@ public class SolverOverlay extends Overlay
 		if (drillDemonSolver.isEnabled()) {
 			highlightTileObject(graphics, drillDemonSolver.getCurrentTileObject());
 		}
-
+		if (surpriseExamSolver.isEnabled()) {
+			for (Widget widget : surpriseExamSolver.getMatchThreeAnswerWidgets()) {
+				highlightWidget(graphics, widget);
+			}
+			highlightWidget(graphics, surpriseExamSolver.getWhatNextAnswerWidget());
+		}
+		if (captArnavSolver.isEnabled()) {
+			for (Widget widget : captArnavSolver.getCorrectTreasureWidgets()) {
+				highlightWidget(graphics, widget);
+			}
+		}
+		if (beekeeperSolver.isEnabled())
+		{
+			for (Widget widget : beekeeperSolver.getAnswerWidgets())
+			{
+				highlightWidget(graphics, widget);
+			}
+		}
 		return null;
 	}
 

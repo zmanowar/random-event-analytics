@@ -212,10 +212,10 @@ public class RandomEventAnalyticsPlugin extends Plugin
 			return;
 		}
 
-		/**
-		 * This is brought to you by the RandomEventPlugin. It seems sometimes you can
-		 * have multiple notifications for a single random, and in our case we can have
-		 * the same event added multiple times
+		/*
+		  This is brought to you by the RandomEventPlugin. It seems sometimes you can
+		  have multiple notifications for a single random, and in our case we can have
+		  the same event added multiple times
 		 */
 		if (client.getTickCount() - lastNotificationTick > RANDOM_EVENT_TIMEOUT)
 		{

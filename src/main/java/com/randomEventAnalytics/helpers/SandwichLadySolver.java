@@ -49,7 +49,7 @@ public class SandwichLadySolver implements SolverModuleComponent
 		put("bread roll", 10727);
 		put("chocolate bar", 10728);
 		put("kebab", 10729);
-		put("meat pie", 10730);
+		put("pie", 10730);
 		put("square sandwich", 10731);
 		put("triangle sandwich", 10732);
 	}};

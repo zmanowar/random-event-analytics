@@ -2,6 +2,8 @@ package com.randomEventAnalytics.module;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.multibindings.Multibinder;
+import com.randomEventAnalytics.helpers.BeekeeperSolver;
+import com.randomEventAnalytics.helpers.CaptArnavSolver;
 import com.randomEventAnalytics.helpers.DrillDemonSolver;
 import com.randomEventAnalytics.helpers.EvilBobSolver;
 import com.randomEventAnalytics.helpers.EvilTwinSolver;
@@ -14,6 +16,7 @@ import com.randomEventAnalytics.helpers.PrisonPeteSolver;
 import com.randomEventAnalytics.helpers.QuizMasterSolver;
 import com.randomEventAnalytics.helpers.SandwichLadySolver;
 import com.randomEventAnalytics.helpers.SolverOverlayManager;
+import com.randomEventAnalytics.helpers.SurpriseExamSolver;
 
 public class RandomEventHelperModule extends AbstractModule
 {
@@ -31,6 +34,9 @@ public class RandomEventHelperModule extends AbstractModule
 		lifecycleComponents.addBinding().to(MazeSolver.class);
 		lifecycleComponents.addBinding().to(GravediggerSolver.class);
 		lifecycleComponents.addBinding().to(DrillDemonSolver.class);
+		lifecycleComponents.addBinding().to(SurpriseExamSolver.class);
+		lifecycleComponents.addBinding().to(CaptArnavSolver.class);
+		lifecycleComponents.addBinding().to(BeekeeperSolver.class);
 		lifecycleComponents.addBinding().to(SolverOverlayManager.class);
 
 	}
