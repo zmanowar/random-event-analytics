@@ -23,11 +23,6 @@ import net.runelite.client.eventbus.Subscribe;
 import org.apache.commons.lang3.ArrayUtils;
 
 
-enum ExamItemType
-{
-	DRINK, FIREMAKING, FISHING, RANGED, MINING, MELEE, FARMING, OTHER, FRUIT, HAT, MAGIC, ARMOR, JEWELRY, SHIELD, NONE
-}
-
 /*
  	Note to self, you can still fail the random. To prolong the random for more item identifications
  	answer correctly then incorrectly.
@@ -57,7 +52,8 @@ public class SurpriseExamSolver implements SolverModuleComponent
 		put(Pattern.compile("drink|thirsty|dehydrated"), ExamItemType.DRINK);
 		put(Pattern.compile("burn|igniting|light my fire"), ExamItemType.FIREMAKING);
 		put(Pattern.compile("shiny|accessories|bangle"), ExamItemType.JEWELRY);
-		put(Pattern.compile("melee|warriors|hand-to-hand"), ExamItemType.MELEE);
+		put(Pattern.compile("ranged|arrow|hate melee"), ExamItemType.RANGED);
+		put(Pattern.compile("warriors|hand-to-hand"), ExamItemType.MELEE); // TODO: Fill this out, missing one
 		put(Pattern.compile("fish|sea food"), ExamItemType.FISHING); // TODO: Check "fish" doesn't appear in other patterns
 	}};
 	private static final HashMap<Integer, ExamItemType> WIDGET_MODEL_ID_TO_ITEM_TYPE = new HashMap<Integer,
@@ -104,6 +100,8 @@ public class SurpriseExamSolver implements SolverModuleComponent
 		put(41197, ExamItemType.FARMING); // Secateurs
 		put(41212, ExamItemType.FARMING); // Rake
 		put(41213, ExamItemType.FARMING); // Watering can
+		put(41210, ExamItemType.FARMING); // Trowel
+		put(41155, ExamItemType.FARMING); // Spade
 		put(41195, ExamItemType.HAT); // Mask
 		put(41196, ExamItemType.HAT); // Jester hat
 		put(41187, ExamItemType.HAT); // Pirate hat
@@ -130,6 +128,9 @@ public class SurpriseExamSolver implements SolverModuleComponent
 		put(27104, ExamItemType.OTHER); // Insulated boots?
 		put(41160, ExamItemType.OTHER); // Fighting boots
 		put(41172, ExamItemType.OTHER); // Bread
+		put(41225, ExamItemType.OTHER); // Jug
+		put(41227, ExamItemType.OTHER); // Shears
+		put(27101, ExamItemType.OTHER); // Frog mask
 		put(41202, ExamItemType.OTHER); // Cake
 		put(41167, ExamItemType.OTHER); // Legends cape
 		put(979, ExamItemType.OTHER); // (Cocktail) Shaker
@@ -301,4 +302,10 @@ public class SurpriseExamSolver implements SolverModuleComponent
 	{
 		eventBus.unregister(this);
 	}
+
+	enum ExamItemType
+	{
+		DRINK, FIREMAKING, FISHING, RANGED, MINING, MELEE, FARMING, OTHER, FRUIT, HAT, MAGIC, ARMOR, JEWELRY, SHIELD, NONE
+	}
+
 }
