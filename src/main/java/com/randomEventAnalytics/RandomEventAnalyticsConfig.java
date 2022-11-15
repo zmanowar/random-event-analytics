@@ -12,6 +12,7 @@ public interface RandomEventAnalyticsConfig extends Config
 	String SECONDS_SINCE_LAST_RANDOM = "secondsSinceLastRandom";
 	String TICKS_SINCE_LAST_RANDOM = "ticksSinceLastRandom";
 	String SECONDS_IN_INSTANCE = "secondsInInstance";
+	String LAST_RANDOM_SPAWN_INSTANT = "lastRandomSpawnInstant";
 
 	@ConfigItem(
 		keyName = "enableEstimation",
@@ -41,6 +42,16 @@ public interface RandomEventAnalyticsConfig extends Config
 	)
 	String experimentalSection = "experimental";
 
+	@ConfigItem(
+		keyName = "showEventTimeWindow",
+		name = "Show Event Time Window",
+		description = "Shows a 5 minute sliding timer for events.",
+		section = experimentalSection
+	)
+	default boolean showEventTimeWindow()
+	{
+		return false;
+	}
 
 	@ConfigItem(
 		keyName = "showDebug",

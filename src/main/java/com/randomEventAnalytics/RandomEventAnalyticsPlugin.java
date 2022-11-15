@@ -7,9 +7,9 @@ import com.randomEventAnalytics.localstorage.RandomEventAnalyticsLocalStorage;
 import com.randomEventAnalytics.localstorage.RandomEventRecord;
 import com.randomEventAnalytics.localstorage.XpInfoRecord;
 import java.awt.image.BufferedImage;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Date;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Actor;
@@ -145,15 +145,44 @@ public class RandomEventAnalyticsPlugin extends Plugin
 			if (localStorage.setPlayerUsername(String.valueOf(hash)))
 			{
 				profile = configManager.getRSProfileKey();
-				timeTracking.init(getIntFromProfileConfig(RandomEventAnalyticsConfig.SECONDS_SINCE_LAST_RANDOM),
+				timeTracking.init(
+					Instant.now(),
+					getIntFromProfileConfig(RandomEventAnalyticsConfig.SECONDS_SINCE_LAST_RANDOM),
 					getIntFromProfileConfig(RandomEventAnalyticsConfig.SECONDS_IN_INSTANCE),
-					getIntFromProfileConfig(RandomEventAnalyticsConfig.TICKS_SINCE_LAST_RANDOM));
+					getIntFromProfileConfig(RandomEventAnalyticsConfig.TICKS_SINCE_LAST_RANDOM),
+					getLastRandomSpawnInstant()
+				);
 				loadPreviousRandomEvents();
 			}
 		}
 		else if (state == GameState.CONNECTION_LOST || state == GameState.HOPPING || state == GameState.LOGIN_SCREEN || state == GameState.UNKNOWN || state == GameState.LOADING)
 		{
 			updateConfig();
+		}
+	}
+
+	private Instant getLastRandomSpawnInstant() {
+		Instant spawned = getInstantFromProfileConfig(RandomEventAnalyticsConfig.LAST_RANDOM_SPAWN_INSTANT);
+		if (spawned != null) {
+			return spawned;
+		}
+
+		// This handles outdated profile config, should only ever need to be called once per profile.
+		RandomEventRecord record = localStorage.getMostRecentRandom();
+		if (record.spawnedTime < 0) return null;
+
+		return Instant.ofEpochMilli(record.spawnedTime);
+	}
+
+	private Instant getInstantFromProfileConfig(String key) {
+		try
+		{
+			return configManager.getConfiguration(RandomEventAnalyticsConfig.CONFIG_GROUP, profile, key, Instant.class);
+		}
+		catch (NullPointerException e)
+		{
+			log.debug("No config loaded for: {}@{}", key, profile);
+			return null;
 		}
 	}
 
@@ -165,7 +194,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		}
 		catch (NullPointerException e)
 		{
-			log.debug("No config loaded for: {}", profile);
+			log.debug("No config loaded for: {}@{}", key, profile);
 			return 0;
 		}
 	}
@@ -233,31 +262,27 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		}
 	}
 
-	@Schedule(period = 1, unit = ChronoUnit.SECONDS)
-	public void timeSchedule()
-	{
-		if (client.getGameState() == GameState.LOGGED_IN)
-		{
-			timeTracking.incrementSeconds();
-			panel.updateEstimation();
-		}
-	}
-
 	@Subscribe
 	public void onGameTick(GameTick tick)
 	{
 		if (client.getGameState() == GameState.LOGGED_IN)
 		{
-			timeTracking.incrementTicks();
+			panel.updateEstimation();
+			timeTracking.incrementTotalLoggedInTicks();
 		}
 	}
 
 	private void updateConfig()
 	{
 		configManager.setConfiguration(RandomEventAnalyticsConfig.CONFIG_GROUP, profile,
-			RandomEventAnalyticsConfig.SECONDS_SINCE_LAST_RANDOM, timeTracking.getSecondsSinceLastRandomEvent());
+			RandomEventAnalyticsConfig.SECONDS_SINCE_LAST_RANDOM, timeTracking.getTotalSecondsSinceLastRandomEvent());
+		if (timeTracking.getLastRandomSpawnTime() != null) {
+			configManager.setConfiguration(RandomEventAnalyticsConfig.CONFIG_GROUP, profile,
+				RandomEventAnalyticsConfig.LAST_RANDOM_SPAWN_INSTANT, timeTracking.getLastRandomSpawnTime());
+		}
 		configManager.setConfiguration(RandomEventAnalyticsConfig.CONFIG_GROUP, profile,
 			RandomEventAnalyticsConfig.TICKS_SINCE_LAST_RANDOM, timeTracking.getTicksSinceLastRandomEvent());
+		// TODO: Convert this to use a new Instant variable to calculate time in instance.
 		configManager.setConfiguration(RandomEventAnalyticsConfig.CONFIG_GROUP, profile,
 			RandomEventAnalyticsConfig.SECONDS_IN_INSTANCE, timeTracking.getSecondsInInstance());
 	}
@@ -271,16 +296,17 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	{
 		localStorage.addRandomEventRecord(record);
 		panel.addRandom(record);
-		timeTracking.reset();
+		timeTracking.setRandomEventSpawned();
 
 		/**
 		 * The strange plant is added after the confirmation is clicked. This offsets
 		 * our timers since the time the plant spawned.
 		 * TODO: Determine if there's a way to correctly set ticksSinceLastRandom
+		 * 	and check to see if this is correctly calculating.
 		 */
 		if (isStrangePlant(record.npcInfoRecord.npcId))
 		{
-			timeTracking.setSecondsSinceLastRandomEvent((int) (new Date().getTime() - record.spawnedTime) / 1000);
+			timeTracking.correctStrangePlantSpawn(record);
 		}
 		updateConfig();
 	}
@@ -291,7 +317,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		PlayerInfoRecord playerInfoRecord = PlayerInfoRecord.create(player);
 		NpcInfoRecord npcInfoRecord = NpcInfoRecord.create(npc);
 		XpInfoRecord xpInfoRecord = XpInfoRecord.create(client, xpTrackerService);
-		RandomEventRecord record = new RandomEventRecord(new Date().getTime(), timeTracking, npcInfoRecord,
+		RandomEventRecord record = new RandomEventRecord(Instant.now().toEpochMilli(), timeTracking, npcInfoRecord,
 			playerInfoRecord, xpInfoRecord);
 		return record;
 	}
@@ -299,5 +325,13 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	private boolean isStrangePlant(int npcId)
 	{
 		return npcId == NpcID.STRANGE_PLANT;
+	}
+
+	@Schedule(
+		period = 500,
+		unit = ChronoUnit.MILLIS
+	)
+	public void updateSchedule() {
+		panel.updateEstimation();
 	}
 }

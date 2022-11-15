@@ -4,9 +4,14 @@ import com.google.inject.Inject;
 import com.randomEventAnalytics.localstorage.RandomEventRecord;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
@@ -18,17 +23,22 @@ import net.runelite.api.Client;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
+import net.runelite.client.ui.SkillColor;
+import net.runelite.client.ui.components.ProgressBar;
 import net.runelite.client.util.ImageUtil;
 
 public class RandomEventAnalyticsPanel extends PluginPanel
 {
 	private final ArrayList<RandomEventRecordBox> infoBoxes = new ArrayList<RandomEventRecordBox>();
 
+	private final ProgressBar loginProgressBar = new ProgressBar();
+	private final ProgressBar spawnTimeProgressBar = new ProgressBar();
 	private final JPanel estimationPanel = new JPanel();
 	private final JComponent eventPanel = new JPanel();
 	private final RandomEventAnalyticsConfig config;
 	private final Client client;
 	private final JLabel estimationUntilNext = new JLabel(RandomEventAnalyticsUtil.htmlLabel("Next Event: ", "--:--"));
+	private final JLabel numIntervals = new JLabel();
 	private final JLabel inInstanceIcon = new JLabel("\u26A0");
 	RandomEventAnalyticsTimeTracking timeTracking;
 	RandomEventAnalyticsPlugin plugin;
@@ -57,13 +67,14 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 
 		final JPanel estimationInfo = new JPanel();
 		estimationInfo.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-		estimationInfo.setLayout(new GridLayout(2, 1));
+		estimationInfo.setLayout(new GridLayout(3, 1));
 		estimationInfo.setBorder(new EmptyBorder(0, 10, 0, 0));
 
 		estimationUntilNext.setFont(FontManager.getRunescapeSmallFont());
 
 		estimationInfo.add(new JLabel("Random Event Estimation"));
 		estimationInfo.add(estimationUntilNext);
+		estimationInfo.add(numIntervals);
 
 		estimationPanel.add(new JLabel(new ImageIcon(ImageUtil.loadImageResource(getClass(), "estimation_icon.png"))),
 			BorderLayout.WEST);
@@ -71,6 +82,35 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 		estimationPanel.add(estimationInfo);
 		setupInInstanceIcon();
 		estimationPanel.add(inInstanceIcon, BorderLayout.EAST);
+
+		if (config.showEventTimeWindow()) {
+			JPanel progressWrapper = new JPanel();
+			progressWrapper.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+			// https://github.com/runelite/runelite/blob/master/runelite-client/src/main/java/net/runelite/client/plugins/xptracker/XpInfoBox.java#L277
+			progressWrapper.setBorder(new EmptyBorder(10, 0, 0, 0));
+			progressWrapper.setLayout(new GridBagLayout());
+			GridBagConstraints c = new GridBagConstraints();
+			c.fill = GridBagConstraints.HORIZONTAL;
+			c.weightx = 0.5;
+			c.gridx = 0;
+			c.gridy = 0;
+
+			loginProgressBar.setMaximumValue(RandomEventAnalyticsTimeTracking.SPAWN_INTERVAL_SECONDS);
+			loginProgressBar.setSize(23, 16);
+			loginProgressBar.setBackground(ColorScheme.MEDIUM_GRAY_COLOR);
+			loginProgressBar.setForeground(Color.BLUE);
+			loginProgressBar.setPreferredSize(new Dimension(23, 16));
+			progressWrapper.add(loginProgressBar, c);
+
+			c.gridx++;
+			spawnTimeProgressBar.setMaximumValue(RandomEventAnalyticsTimeTracking.SPAWN_INTERVAL_SECONDS);
+			spawnTimeProgressBar.setBackground(ColorScheme.DARK_GRAY_COLOR);
+			spawnTimeProgressBar.setForeground(ColorScheme.PROGRESS_COMPLETE_COLOR);
+			progressWrapper.add(spawnTimeProgressBar, c);
+
+			estimationPanel.add(progressWrapper, BorderLayout.SOUTH);
+		}
+
 		layoutPanel.add(estimationPanel);
 
 		eventPanel.setLayout(new BoxLayout(eventPanel, BoxLayout.Y_AXIS));
@@ -134,11 +174,25 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 		{
 			return;
 		}
+
+		if (config.showEventTimeWindow()) {
+			if (!timeTracking.hasLoggedInLongEnoughForSpawn()) {
+				loginProgressBar.setValue(timeTracking.getSecondsSinceLogin());
+				spawnTimeProgressBar.setDimmed(true);
+
+			}
+			else {
+				loginProgressBar.setValue(RandomEventAnalyticsTimeTracking.SPAWN_INTERVAL_SECONDS);
+				spawnTimeProgressBar.setDimmed(false);
+			}
+			spawnTimeProgressBar.setValue(timeTracking.getNextRandomEventEstimation());
+			numIntervals.setText(timeTracking.getCurrentNumIntervals().toString());
+		}
+
 		SwingUtilities.invokeLater(() -> {
 			int estimatedSeconds = timeTracking.getNextRandomEventEstimation();
 			inInstanceIcon.setVisible(client.isInInstancedRegion());
-			String label = estimatedSeconds >= 0 ? "Next Event: " : "Overestimate: ";
-			estimationUntilNext.setText(RandomEventAnalyticsUtil.htmlLabel(label,
+			estimationUntilNext.setText(RandomEventAnalyticsUtil.htmlLabel("Next Event: ",
 				RandomEventAnalyticsUtil.formatSeconds(Math.abs(estimatedSeconds))));
 		});
 	}

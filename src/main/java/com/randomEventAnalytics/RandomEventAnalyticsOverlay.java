@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import javax.inject.Inject;
-import javax.swing.SwingUtilities;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.components.LineComponent;
@@ -50,6 +49,14 @@ public class RandomEventAnalyticsOverlay extends Overlay
 			.left(estimatedSeconds >= 0 ? TIME_UNTIL_LABEL : OVERESTIMATE_LABEL)
 			.right(RandomEventAnalyticsUtil.formatSeconds(Math.abs(estimatedSeconds)))
 			.build());
+
+		if (config.showEventTimeWindow()) {
+			int closestSpawnTimer = timeTracking.getClosestSpawnTimer();
+			panelComponent.getChildren().add(LineComponent.builder()
+				.left(timeTracking.hasLoggedInLongEnoughForSpawn() ? "Event Spawn Window" : "Waiting for login timer...")
+				.right(RandomEventAnalyticsUtil.formatSeconds(Math.abs(closestSpawnTimer)))
+				.build());
+		}
 
 		if (config.showDebug())
 		{
