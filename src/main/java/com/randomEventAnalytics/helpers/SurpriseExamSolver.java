@@ -73,14 +73,23 @@ public class SurpriseExamSolver implements SolverModuleComponent
 		put(41209, ExamItemType.FISHING); // Tuna
 		put(41206, ExamItemType.FISHING); // Pike?
 		put(41166, ExamItemType.FISHING); // Shark
+		put(41204, ExamItemType.FISHING); // Salmon?
+		put(41202, ExamItemType.COOKING); // Cake
+		put(41203, ExamItemType.COOKING); // Chefs Hat
+		put(41190, ExamItemType.COOKING); // Apron
+		put(41172, ExamItemType.COOKING); // Bread
+		put(41205, ExamItemType.COOKING); // Pie
 		put(41171, ExamItemType.RANGED); // Bow
 		put(27097, ExamItemType.DRINK); // Gnome cocktail of some sort
+		put(28421, ExamItemType.DRINK); // Gnome cocktail of some sort
+		put(41162, ExamItemType.DRINK); // Tea
+		put(41219, ExamItemType.DRINK); // Whiskey
+		put(41152, ExamItemType.DRINK); // Beer
 		put(41170, ExamItemType.MINING); // Copper ore?
 		put(27094, ExamItemType.MINING); // Platebody
 		put(41153, ExamItemType.MINING); // Ingot
 		put(41194, ExamItemType.MINING); // Pickaxe
 		put(41183, ExamItemType.MINING); // Hammer
-		put(41152, ExamItemType.DRINK); // Beer
 		put(41150, ExamItemType.MELEE); // Sword
 		put(41176, ExamItemType.MELEE); // Battle-axe
 		put(41192, ExamItemType.MELEE); // Scimitar
@@ -88,7 +97,6 @@ public class SurpriseExamSolver implements SolverModuleComponent
 		put(41169, ExamItemType.SHIELD); // Square shield
 		put(41188, ExamItemType.SHIELD); // Square shield with sword on it?
 		put(41221, ExamItemType.SHIELD); // Round shield
-		put(41162, ExamItemType.DRINK); // Tea
 		put(41198, ExamItemType.RANGED); // Bow 2
 		put(41222, ExamItemType.FRUIT); // Banana
 		put(41230, ExamItemType.FRUIT); // Strawberry
@@ -127,11 +135,9 @@ public class SurpriseExamSolver implements SolverModuleComponent
 		put(41220, ExamItemType.OTHER); // Ranger boots
 		put(27104, ExamItemType.OTHER); // Insulated boots?
 		put(41160, ExamItemType.OTHER); // Fighting boots
-		put(41172, ExamItemType.OTHER); // Bread
 		put(41225, ExamItemType.OTHER); // Jug
 		put(41227, ExamItemType.OTHER); // Shears
 		put(27101, ExamItemType.OTHER); // Frog mask
-		put(41202, ExamItemType.OTHER); // Cake
 		put(41167, ExamItemType.OTHER); // Legends cape
 		put(979, ExamItemType.OTHER); // (Cocktail) Shaker
 		put(41181, ExamItemType.OTHER);
@@ -305,7 +311,7 @@ public class SurpriseExamSolver implements SolverModuleComponent
 
 	enum ExamItemType
 	{
-		DRINK, FIREMAKING, FISHING, RANGED, MINING, MELEE, FARMING, OTHER, FRUIT, HAT, MAGIC, ARMOR, JEWELRY, SHIELD, NONE
+		DRINK, FIREMAKING, FISHING, RANGED, MINING, MELEE, FARMING, OTHER, FRUIT, HAT, MAGIC, ARMOR, JEWELRY, SHIELD, COOKING, NONE
 	}
 
 }

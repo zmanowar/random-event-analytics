@@ -11,6 +11,7 @@ import com.randomEventAnalytics.localstorage.RandomEventAnalyticsLocalStorage;
 import com.randomEventAnalytics.localstorage.RandomEventRecord;
 import com.randomEventAnalytics.localstorage.XpInfoRecord;
 import java.awt.image.BufferedImage;
+import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
@@ -19,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Actor;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
+import net.runelite.api.Constants;
 import net.runelite.api.GameState;
 import net.runelite.api.NPC;
 import net.runelite.api.NpcID;
@@ -99,6 +101,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	@Override
 	protected void startUp() throws Exception
 	{
+		client.setIdleTimeout((int) Duration.ofMinutes(30).toMillis() / Constants.CLIENT_TICK_LENGTH);
 		overlayManager.add(overlay);
 		panel = injector.getInstance(RandomEventAnalyticsPanel.class);
 		final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "random_event_analytics.png");
