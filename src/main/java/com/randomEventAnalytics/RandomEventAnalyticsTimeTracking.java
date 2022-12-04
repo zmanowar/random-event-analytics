@@ -6,7 +6,9 @@ import java.time.Duration;
 import java.time.Instant;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Singleton
 public class RandomEventAnalyticsTimeTracking
 {
@@ -23,16 +25,20 @@ public class RandomEventAnalyticsTimeTracking
 	@Getter
 	private Instant lastRandomSpawnTime;
 
+	private int intervalsSinceLastRandom;
+
 	@Getter
+	@Setter
 	private Instant loginTime;
 
-	public void init(Instant loginTime, int secondsSinceLastRandomEvent, int secondsInInstance, int ticksSinceLastRandomEvent, Instant lastRandomSpawnTime)
+	public void init(Instant loginTime, int secondsSinceLastRandomEvent, int secondsInInstance, int ticksSinceLastRandomEvent, Instant lastRandomSpawnTime, int intervalsSinceLastRandom)
 	{
 		this.loginTime = loginTime;
 		this.secondsSinceLastRandomEvent = secondsSinceLastRandomEvent;
 		this.secondsInInstance = secondsInInstance;
 		this.ticksSinceLastRandomEvent = ticksSinceLastRandomEvent;
 		this.lastRandomSpawnTime = lastRandomSpawnTime;
+		setIntervalsSinceLastRandom(intervalsSinceLastRandom);
 	}
 
 	/**
@@ -46,6 +52,7 @@ public class RandomEventAnalyticsTimeTracking
 	 *
 	 */
 	public int getTotalSecondsSinceLastRandomEvent() {
+		if (this.loginTime == null) return -1;
 		if (this.lastRandomSpawnTime != null && this.lastRandomSpawnTime.isAfter(this.loginTime)) {
 			return (int) Duration.between(this.lastRandomSpawnTime, Instant.now()).toMillis() / 1000;
 		}
@@ -58,7 +65,7 @@ public class RandomEventAnalyticsTimeTracking
 	}
 
 	public boolean hasLoggedInLongEnoughForSpawn() {
-		return getSecondsSinceLogin() > SPAWN_INTERVAL_SECONDS + SPAWN_INTERVAL_MARGIN_SECONDS;
+		return getSecondsSinceLogin() > SPAWN_INTERVAL_SECONDS;
 	}
 
 	public int getSecondsSinceLogin() {
@@ -66,8 +73,13 @@ public class RandomEventAnalyticsTimeTracking
 		return (int) Duration.between(loginTime, Instant.now()).toMillis() / 1000;
 	}
 
-	public int getClosestSpawnTimer() {
+	public int getNextRandomEventEstimation() {
 		int loginTime = getSecondsSinceLogin();
+
+		if (loginTime < 0) {
+			return SPAWN_INTERVAL_SECONDS;
+		}
+
 		if (!hasLoggedInLongEnoughForSpawn()) {
 			// Initial spawn, must wait 5 minutes
 			return SPAWN_INTERVAL_SECONDS - loginTime;
@@ -83,25 +95,34 @@ public class RandomEventAnalyticsTimeTracking
 		return SPAWN_INTERVAL_SECONDS - secondsMod;
 	}
 
-	public Integer getCurrentNumIntervals() {
-		return getTotalSecondsSinceLastRandomEvent() / SPAWN_INTERVAL_SECONDS;
-	}
-
-	public int getNextRandomEventEstimation()
-	{
-		return SPAWN_INTERVAL_SECONDS - (getTotalSecondsSinceLastRandomEvent() % SPAWN_INTERVAL_SECONDS);
-	}
-
 	public void setRandomEventSpawned()
 	{
 		lastRandomSpawnTime = Instant.now();
 		secondsInInstance = 0;
 		ticksSinceLastRandomEvent = 0;
 		secondsSinceLastRandomEvent = 0;
+		intervalsSinceLastRandom = 0;
 	}
 
 	public void correctStrangePlantSpawn(RandomEventRecord record) {
 		lastRandomSpawnTime = Instant.ofEpochMilli(record.spawnedTime);
 		secondsSinceLastRandomEvent = getTotalSecondsSinceLastRandomEvent();
+	}
+
+	public int getIntervalsSinceLastRandom() {
+		return this.intervalsSinceLastRandom + getCurrentSessionNumIntervals();
+	}
+
+	private int getCurrentSessionNumIntervals() {
+		return getSecondsSinceLogin() / SPAWN_INTERVAL_SECONDS;
+	}
+
+	private void setIntervalsSinceLastRandom(int numIntervals) {
+		if (numIntervals < 0) {
+			// One-time Update: Should only need to be set once per profile config.
+			this.intervalsSinceLastRandom = getTotalSecondsSinceLastRandomEvent() % SPAWN_INTERVAL_SECONDS;
+		} else {
+			this.intervalsSinceLastRandom = numIntervals;
+		}
 	}
 }

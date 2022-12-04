@@ -12,6 +12,8 @@ public class RandomEventRecord
 	public final int secondsSinceLastRandomEvent;
 	// Ticks (logged in) since last random event occurred
 	public final int ticksSinceLastRandomEvent;
+	// Total 5-minute intervals that have passed.
+	public final int intervalsSinceLastRandom;
 	public final NpcInfoRecord npcInfoRecord;
 	public final PlayerInfoRecord playerInfoRecord;
 	public final XpInfoRecord xpInfoRecord;
@@ -24,6 +26,7 @@ public class RandomEventRecord
 		this.secondsSinceLastRandomEvent = timeTracking.getTotalSecondsSinceLastRandomEvent();
 		this.ticksSinceLastRandomEvent = timeTracking.getTicksSinceLastRandomEvent();
 		this.secondsInInstance = timeTracking.getSecondsInInstance();
+		this.intervalsSinceLastRandom = timeTracking.getIntervalsSinceLastRandom();
 		this.xpInfoRecord = xpInfoRecord;
 		this.playerInfoRecord = playerInfoRecord;
 		this.npcInfoRecord = npcInfoRecord;

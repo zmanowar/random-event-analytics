@@ -13,6 +13,7 @@ public interface RandomEventAnalyticsConfig extends Config
 	String TICKS_SINCE_LAST_RANDOM = "ticksSinceLastRandom";
 	String SECONDS_IN_INSTANCE = "secondsInInstance";
 	String LAST_RANDOM_SPAWN_INSTANT = "lastRandomSpawnInstant";
+	String INTERVALS_SINCE_LAST_RANDOM = "intervalsSinceLastRandom";
 
 	@ConfigItem(
 		keyName = "enableEstimation",
@@ -27,12 +28,23 @@ public interface RandomEventAnalyticsConfig extends Config
 	@ConfigItem(
 		keyName = "enableOverlay",
 		name = "Enable Overlay",
-		description = "Show the Random Events overlay. Enable Estimation must be enabled."
+		description = "Show the Random Events overlay."
 	)
 	default boolean enableOverlay()
 	{
 		return false;
 	}
+
+	@ConfigItem(
+		keyName = "showEventTimeWindow",
+		name = "Show Event Time Window",
+		description = "Shows a 5 minute sliding timer for events.",
+	)
+	default boolean showEventTimeWindow()
+	{
+		return false;
+	}
+
 
 	@ConfigSection(
 		name = "Experimental",
@@ -41,17 +53,6 @@ public interface RandomEventAnalyticsConfig extends Config
 		closedByDefault = true
 	)
 	String experimentalSection = "experimental";
-
-	@ConfigItem(
-		keyName = "showEventTimeWindow",
-		name = "Show Event Time Window",
-		description = "Shows a 5 minute sliding timer for events.",
-		section = experimentalSection
-	)
-	default boolean showEventTimeWindow()
-	{
-		return false;
-	}
 
 	@ConfigItem(
 		keyName = "showDebug",

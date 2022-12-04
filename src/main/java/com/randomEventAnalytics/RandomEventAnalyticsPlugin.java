@@ -128,8 +128,12 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	public void onGameStateChanged(GameStateChanged gameStateChanged)
 	{
 		GameState state = gameStateChanged.getGameState();
+		// TODO: Update timeTracking loginTime when relogging.
 		if (state == GameState.LOGGED_IN)
 		{
+			if (timeTracking.getLoginTime() == null) {
+				timeTracking.setLoginTime(Instant.now());
+			}
 			final long hash = client.getAccountHash();
 			if (String.valueOf(hash).equalsIgnoreCase(localStorage.getUsername()))
 			{
@@ -147,16 +151,23 @@ public class RandomEventAnalyticsPlugin extends Plugin
 				profile = configManager.getRSProfileKey();
 				timeTracking.init(
 					Instant.now(),
-					getIntFromProfileConfig(RandomEventAnalyticsConfig.SECONDS_SINCE_LAST_RANDOM),
-					getIntFromProfileConfig(RandomEventAnalyticsConfig.SECONDS_IN_INSTANCE),
-					getIntFromProfileConfig(RandomEventAnalyticsConfig.TICKS_SINCE_LAST_RANDOM),
-					getLastRandomSpawnInstant()
+					getIntFromProfileConfig(RandomEventAnalyticsConfig.SECONDS_SINCE_LAST_RANDOM, 0),
+					getIntFromProfileConfig(RandomEventAnalyticsConfig.SECONDS_IN_INSTANCE, 0),
+					getIntFromProfileConfig(RandomEventAnalyticsConfig.TICKS_SINCE_LAST_RANDOM, 0),
+					getLastRandomSpawnInstant(),
+					getIntFromProfileConfig(RandomEventAnalyticsConfig.INTERVALS_SINCE_LAST_RANDOM, -1)
 				);
 				loadPreviousRandomEvents();
 			}
 		}
-		else if (state == GameState.CONNECTION_LOST || state == GameState.HOPPING || state == GameState.LOGIN_SCREEN || state == GameState.UNKNOWN || state == GameState.LOADING)
+		else if (state == GameState.CONNECTION_LOST || state == GameState.HOPPING || state == GameState.UNKNOWN || state == GameState.LOADING)
 		{
+			updateConfig();
+		}
+		else if (state == GameState.LOGIN_SCREEN)
+		{
+			timeTracking.setLoginTime(null);
+			panel.updateEstimation();
 			updateConfig();
 		}
 	}
@@ -167,7 +178,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 			return spawned;
 		}
 
-		// This handles outdated profile config, should only ever need to be called once per profile.
+		// One-time Update: This handles outdated profile config, should only ever need to be called once per profile.
 		RandomEventRecord record = localStorage.getMostRecentRandom();
 		if (record.spawnedTime < 0) return null;
 
@@ -186,7 +197,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		}
 	}
 
-	private int getIntFromProfileConfig(String key)
+	private int getIntFromProfileConfig(String key, int _default)
 	{
 		try
 		{
@@ -195,7 +206,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		catch (NullPointerException e)
 		{
 			log.debug("No config loaded for: {}@{}", key, profile);
-			return 0;
+			return _default;
 		}
 	}
 
@@ -281,6 +292,8 @@ public class RandomEventAnalyticsPlugin extends Plugin
 				RandomEventAnalyticsConfig.LAST_RANDOM_SPAWN_INSTANT, timeTracking.getLastRandomSpawnTime());
 		}
 		configManager.setConfiguration(RandomEventAnalyticsConfig.CONFIG_GROUP, profile,
+			RandomEventAnalyticsConfig.INTERVALS_SINCE_LAST_RANDOM, timeTracking.getIntervalsSinceLastRandom());
+		configManager.setConfiguration(RandomEventAnalyticsConfig.CONFIG_GROUP, profile,
 			RandomEventAnalyticsConfig.TICKS_SINCE_LAST_RANDOM, timeTracking.getTicksSinceLastRandomEvent());
 		// TODO: Convert this to use a new Instant variable to calculate time in instance.
 		configManager.setConfiguration(RandomEventAnalyticsConfig.CONFIG_GROUP, profile,
@@ -332,6 +345,9 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		unit = ChronoUnit.MILLIS
 	)
 	public void updateSchedule() {
-		panel.updateEstimation();
+		if (client.getGameState() == GameState.LOGGED_IN)
+		{
+			panel.updateEstimation();
+		}
 	}
 }

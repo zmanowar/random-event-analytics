@@ -31,29 +31,18 @@ public class RandomEventAnalyticsOverlay extends Overlay
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
-		if (!config.enableOverlay() || !config.enableEstimation())
+		if (!config.enableOverlay())
 		{
 			return null;
 		}
 		panelComponent.getChildren().clear();
 
-		int estimatedSeconds = timeTracking.getNextRandomEventEstimation();
-
-		// Build overlay title
-		panelComponent.getChildren().add(TitleComponent.builder()
-			.text(TITLE_LABEL)
-			.color(estimatedSeconds >= 0 ? Color.GREEN : Color.RED)
-			.build());
-
-		panelComponent.getChildren().add(LineComponent.builder()
-			.left(estimatedSeconds >= 0 ? TIME_UNTIL_LABEL : OVERESTIMATE_LABEL)
-			.right(RandomEventAnalyticsUtil.formatSeconds(Math.abs(estimatedSeconds)))
-			.build());
-
-		if (config.showEventTimeWindow()) {
-			int closestSpawnTimer = timeTracking.getClosestSpawnTimer();
+		if (config.showEventTimeWindow())
+		{
+			int closestSpawnTimer = timeTracking.getNextRandomEventEstimation();
 			panelComponent.getChildren().add(LineComponent.builder()
-				.left(timeTracking.hasLoggedInLongEnoughForSpawn() ? "Event Spawn Window" : "Waiting for login timer...")
+				.left(timeTracking.hasLoggedInLongEnoughForSpawn() ? "Event Spawn Window" : "Initial login countdown." +
+					"..")
 				.right(RandomEventAnalyticsUtil.formatSeconds(Math.abs(closestSpawnTimer)))
 				.build());
 		}

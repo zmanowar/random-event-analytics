@@ -30,8 +30,6 @@ import net.runelite.client.util.ImageUtil;
 public class RandomEventAnalyticsPanel extends PluginPanel
 {
 	private final ArrayList<RandomEventRecordBox> infoBoxes = new ArrayList<RandomEventRecordBox>();
-
-	private final ProgressBar loginProgressBar = new ProgressBar();
 	private final ProgressBar spawnTimeProgressBar = new ProgressBar();
 	private final JPanel estimationPanel = new JPanel();
 	private final JComponent eventPanel = new JPanel();
@@ -88,25 +86,12 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 			progressWrapper.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 			// https://github.com/runelite/runelite/blob/master/runelite-client/src/main/java/net/runelite/client/plugins/xptracker/XpInfoBox.java#L277
 			progressWrapper.setBorder(new EmptyBorder(10, 0, 0, 0));
-			progressWrapper.setLayout(new GridBagLayout());
-			GridBagConstraints c = new GridBagConstraints();
-			c.fill = GridBagConstraints.HORIZONTAL;
-			c.weightx = 0.5;
-			c.gridx = 0;
-			c.gridy = 0;
+			progressWrapper.setLayout(new BorderLayout());
 
-			loginProgressBar.setMaximumValue(RandomEventAnalyticsTimeTracking.SPAWN_INTERVAL_SECONDS);
-			loginProgressBar.setSize(23, 16);
-			loginProgressBar.setBackground(ColorScheme.MEDIUM_GRAY_COLOR);
-			loginProgressBar.setForeground(Color.BLUE);
-			loginProgressBar.setPreferredSize(new Dimension(23, 16));
-			progressWrapper.add(loginProgressBar, c);
-
-			c.gridx++;
 			spawnTimeProgressBar.setMaximumValue(RandomEventAnalyticsTimeTracking.SPAWN_INTERVAL_SECONDS);
 			spawnTimeProgressBar.setBackground(ColorScheme.DARK_GRAY_COLOR);
 			spawnTimeProgressBar.setForeground(ColorScheme.PROGRESS_COMPLETE_COLOR);
-			progressWrapper.add(spawnTimeProgressBar, c);
+			progressWrapper.add(spawnTimeProgressBar);
 
 			estimationPanel.add(progressWrapper, BorderLayout.SOUTH);
 		}
@@ -176,17 +161,8 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 		}
 
 		if (config.showEventTimeWindow()) {
-			if (!timeTracking.hasLoggedInLongEnoughForSpawn()) {
-				loginProgressBar.setValue(timeTracking.getSecondsSinceLogin());
-				spawnTimeProgressBar.setDimmed(true);
-
-			}
-			else {
-				loginProgressBar.setValue(RandomEventAnalyticsTimeTracking.SPAWN_INTERVAL_SECONDS);
-				spawnTimeProgressBar.setDimmed(false);
-			}
-			spawnTimeProgressBar.setValue(timeTracking.getNextRandomEventEstimation());
-			numIntervals.setText(timeTracking.getCurrentNumIntervals().toString());
+			spawnTimeProgressBar.setValue(Math.abs(RandomEventAnalyticsTimeTracking.SPAWN_INTERVAL_SECONDS - timeTracking.getNextRandomEventEstimation()));
+			numIntervals.setText(String.valueOf(timeTracking.getIntervalsSinceLastRandom()));
 		}
 
 		SwingUtilities.invokeLater(() -> {
@@ -194,6 +170,7 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 			inInstanceIcon.setVisible(client.isInInstancedRegion());
 			estimationUntilNext.setText(RandomEventAnalyticsUtil.htmlLabel("Next Event: ",
 				RandomEventAnalyticsUtil.formatSeconds(Math.abs(estimatedSeconds))));
+			estimationUntilNext.setToolTipText("Intervals: " + timeTracking.getIntervalsSinceLastRandom());
 		});
 	}
 }
