@@ -81,20 +81,18 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 		setupInInstanceIcon();
 		estimationPanel.add(inInstanceIcon, BorderLayout.EAST);
 
-		if (config.showEventTimeWindow()) {
-			JPanel progressWrapper = new JPanel();
-			progressWrapper.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-			// https://github.com/runelite/runelite/blob/master/runelite-client/src/main/java/net/runelite/client/plugins/xptracker/XpInfoBox.java#L277
-			progressWrapper.setBorder(new EmptyBorder(10, 0, 0, 0));
-			progressWrapper.setLayout(new BorderLayout());
+		JPanel progressWrapper = new JPanel();
+		progressWrapper.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+		// https://github.com/runelite/runelite/blob/master/runelite-client/src/main/java/net/runelite/client/plugins/xptracker/XpInfoBox.java#L277
+		progressWrapper.setBorder(new EmptyBorder(10, 0, 0, 0));
+		progressWrapper.setLayout(new BorderLayout());
 
-			spawnTimeProgressBar.setMaximumValue(RandomEventAnalyticsTimeTracking.SPAWN_INTERVAL_SECONDS);
-			spawnTimeProgressBar.setBackground(ColorScheme.DARK_GRAY_COLOR);
-			spawnTimeProgressBar.setForeground(ColorScheme.PROGRESS_COMPLETE_COLOR);
-			progressWrapper.add(spawnTimeProgressBar);
+		spawnTimeProgressBar.setMaximumValue(RandomEventAnalyticsTimeTracking.SPAWN_INTERVAL_SECONDS);
+		spawnTimeProgressBar.setBackground(ColorScheme.DARK_GRAY_COLOR);
+		spawnTimeProgressBar.setForeground(ColorScheme.PROGRESS_COMPLETE_COLOR);
+		progressWrapper.add(spawnTimeProgressBar);
 
-			estimationPanel.add(progressWrapper, BorderLayout.SOUTH);
-		}
+		estimationPanel.add(progressWrapper, BorderLayout.SOUTH);
 
 		layoutPanel.add(estimationPanel);
 
@@ -160,10 +158,8 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 			return;
 		}
 
-		if (config.showEventTimeWindow()) {
-			spawnTimeProgressBar.setValue(Math.abs(RandomEventAnalyticsTimeTracking.SPAWN_INTERVAL_SECONDS - timeTracking.getNextRandomEventEstimation()));
-			numIntervals.setText(String.valueOf(timeTracking.getIntervalsSinceLastRandom()));
-		}
+		spawnTimeProgressBar.setValue(Math.abs(RandomEventAnalyticsTimeTracking.SPAWN_INTERVAL_SECONDS - timeTracking.getNextRandomEventEstimation()));
+		numIntervals.setText(String.valueOf(timeTracking.getIntervalsSinceLastRandom()));
 
 		SwingUtilities.invokeLater(() -> {
 			int estimatedSeconds = timeTracking.getNextRandomEventEstimation();

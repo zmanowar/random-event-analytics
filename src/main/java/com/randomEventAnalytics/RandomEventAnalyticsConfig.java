@@ -18,7 +18,7 @@ public interface RandomEventAnalyticsConfig extends Config
 	@ConfigItem(
 		keyName = "enableEstimation",
 		name = "Enable Estimation",
-		description = "Show the Random Events estimation."
+		description = "Shows a 5 minute sliding timer for events."
 	)
 	default boolean enableEstimation()
 	{
@@ -34,17 +34,6 @@ public interface RandomEventAnalyticsConfig extends Config
 	{
 		return false;
 	}
-
-	@ConfigItem(
-		keyName = "showEventTimeWindow",
-		name = "Show Event Time Window",
-		description = "Shows a 5 minute sliding timer for events.",
-	)
-	default boolean showEventTimeWindow()
-	{
-		return false;
-	}
-
 
 	@ConfigSection(
 		name = "Experimental",
