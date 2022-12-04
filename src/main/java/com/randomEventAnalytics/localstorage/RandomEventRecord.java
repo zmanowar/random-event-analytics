@@ -1,6 +1,6 @@
 package com.randomEventAnalytics.localstorage;
 
-import com.randomEventAnalytics.RandomEventAnalyticsTimeTracking;
+import com.randomEventAnalytics.TimeTracking;
 import lombok.Data;
 
 @Data
@@ -19,7 +19,7 @@ public class RandomEventRecord
 	public final XpInfoRecord xpInfoRecord;
 	private final int secondsInInstance;
 
-	public RandomEventRecord(long spawnedTime, RandomEventAnalyticsTimeTracking timeTracking,
+	public RandomEventRecord(long spawnedTime, TimeTracking timeTracking,
 							 NpcInfoRecord npcInfoRecord, PlayerInfoRecord playerInfoRecord, XpInfoRecord xpInfoRecord)
 	{
 		this.spawnedTime = spawnedTime;

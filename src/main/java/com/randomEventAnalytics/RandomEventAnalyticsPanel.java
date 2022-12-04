@@ -4,14 +4,9 @@ import com.google.inject.Inject;
 import com.randomEventAnalytics.localstorage.RandomEventRecord;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
@@ -23,7 +18,6 @@ import net.runelite.api.Client;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
-import net.runelite.client.ui.SkillColor;
 import net.runelite.client.ui.components.ProgressBar;
 import net.runelite.client.util.ImageUtil;
 
@@ -38,12 +32,12 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 	private final JLabel estimationUntilNext = new JLabel(RandomEventAnalyticsUtil.htmlLabel("Next Event: ", "--:--"));
 	private final JLabel numIntervals = new JLabel();
 	private final JLabel inInstanceIcon = new JLabel("\u26A0");
-	RandomEventAnalyticsTimeTracking timeTracking;
+	TimeTracking timeTracking;
 	RandomEventAnalyticsPlugin plugin;
 
 	@Inject
 	RandomEventAnalyticsPanel(RandomEventAnalyticsPlugin plugin, RandomEventAnalyticsConfig config,
-							  RandomEventAnalyticsTimeTracking timeTracking, Client client)
+							  TimeTracking timeTracking, Client client)
 	{
 		super();
 		this.timeTracking = timeTracking;
@@ -87,7 +81,7 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 		progressWrapper.setBorder(new EmptyBorder(10, 0, 0, 0));
 		progressWrapper.setLayout(new BorderLayout());
 
-		spawnTimeProgressBar.setMaximumValue(RandomEventAnalyticsTimeTracking.SPAWN_INTERVAL_SECONDS);
+		spawnTimeProgressBar.setMaximumValue(TimeTracking.SPAWN_INTERVAL_SECONDS);
 		spawnTimeProgressBar.setBackground(ColorScheme.DARK_GRAY_COLOR);
 		spawnTimeProgressBar.setForeground(ColorScheme.PROGRESS_COMPLETE_COLOR);
 		progressWrapper.add(spawnTimeProgressBar);
@@ -158,7 +152,7 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 			return;
 		}
 
-		spawnTimeProgressBar.setValue(Math.abs(RandomEventAnalyticsTimeTracking.SPAWN_INTERVAL_SECONDS - timeTracking.getNextRandomEventEstimation()));
+		spawnTimeProgressBar.setValue(Math.abs(TimeTracking.SPAWN_INTERVAL_SECONDS - timeTracking.getNextRandomEventEstimation()));
 		numIntervals.setText(String.valueOf(timeTracking.getIntervalsSinceLastRandom()));
 
 		SwingUtilities.invokeLater(() -> {

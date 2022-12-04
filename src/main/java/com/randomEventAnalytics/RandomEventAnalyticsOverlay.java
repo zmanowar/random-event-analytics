@@ -1,6 +1,5 @@
 package com.randomEventAnalytics;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import javax.inject.Inject;
@@ -8,7 +7,6 @@ import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.components.LineComponent;
 import net.runelite.client.ui.overlay.components.PanelComponent;
-import net.runelite.client.ui.overlay.components.TitleComponent;
 
 public class RandomEventAnalyticsOverlay extends Overlay
 {
@@ -17,11 +15,11 @@ public class RandomEventAnalyticsOverlay extends Overlay
 	private static final String TITLE_LABEL = "Random Event";
 	private final RandomEventAnalyticsConfig config;
 	private final PanelComponent panelComponent = new PanelComponent();
-	private final RandomEventAnalyticsTimeTracking timeTracking;
+	private final TimeTracking timeTracking;
 
 	@Inject
 	private RandomEventAnalyticsOverlay(RandomEventAnalyticsConfig config,
-										RandomEventAnalyticsTimeTracking timeTracking)
+										TimeTracking timeTracking)
 	{
 		setPosition(OverlayPosition.ABOVE_CHATBOX_RIGHT);
 		this.config = config;
@@ -37,7 +35,7 @@ public class RandomEventAnalyticsOverlay extends Overlay
 		}
 		panelComponent.getChildren().clear();
 
-		if (config.showEventTimeWindow())
+		if (config.enableEstimation())
 		{
 			int closestSpawnTimer = timeTracking.getNextRandomEventEstimation();
 			panelComponent.getChildren().add(LineComponent.builder()

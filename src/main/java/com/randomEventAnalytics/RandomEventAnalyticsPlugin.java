@@ -63,7 +63,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	@Inject
 	private RandomEventAnalyticsLocalStorage localStorage;
 	@Inject
-	private RandomEventAnalyticsTimeTracking timeTracking;
+	private TimeTracking timeTracking;
 	@Inject
 	private ClientToolbar clientToolbar;
 	@Inject
@@ -167,8 +167,8 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		else if (state == GameState.LOGIN_SCREEN)
 		{
 			timeTracking.setLoginTime(null);
-			panel.updateEstimation();
 			updateConfig();
+			panel.updateEstimation();
 		}
 	}
 

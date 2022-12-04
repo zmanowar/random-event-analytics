@@ -8,12 +8,17 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+/*
+	Notes:
+		Does everyone get a random 5 minutes after their first login after an
+		update / server restart?
+ */
 @Slf4j
 @Singleton
-public class RandomEventAnalyticsTimeTracking
+public class TimeTracking
 {
 	public static final int SPAWN_INTERVAL_SECONDS = 60 * 5;
-	private static final int SPAWN_INTERVAL_MARGIN_SECONDS = 15;
+	private static final int SPAWN_INTERVAL_MARGIN_SECONDS = 0;
 
 	@Setter
 	private int secondsSinceLastRandomEvent;
@@ -28,7 +33,6 @@ public class RandomEventAnalyticsTimeTracking
 	private int intervalsSinceLastRandom;
 
 	@Getter
-	@Setter
 	private Instant loginTime;
 
 	public void init(Instant loginTime, int secondsSinceLastRandomEvent, int secondsInInstance, int ticksSinceLastRandomEvent, Instant lastRandomSpawnTime, int intervalsSinceLastRandom)
@@ -104,6 +108,13 @@ public class RandomEventAnalyticsTimeTracking
 		intervalsSinceLastRandom = 0;
 	}
 
+	public void setLoginTime(Instant instant) {
+		if (instant == null) {
+			this.intervalsSinceLastRandom = getIntervalsSinceLastRandom();
+		}
+		this.loginTime = instant;
+	}
+
 	public void correctStrangePlantSpawn(RandomEventRecord record) {
 		lastRandomSpawnTime = Instant.ofEpochMilli(record.spawnedTime);
 		secondsSinceLastRandomEvent = getTotalSecondsSinceLastRandomEvent();
@@ -120,7 +131,7 @@ public class RandomEventAnalyticsTimeTracking
 	private void setIntervalsSinceLastRandom(int numIntervals) {
 		if (numIntervals < 0) {
 			// One-time Update: Should only need to be set once per profile config.
-			this.intervalsSinceLastRandom = getTotalSecondsSinceLastRandomEvent() % SPAWN_INTERVAL_SECONDS;
+			this.intervalsSinceLastRandom = getTotalSecondsSinceLastRandomEvent() / SPAWN_INTERVAL_SECONDS;
 		} else {
 			this.intervalsSinceLastRandom = numIntervals;
 		}

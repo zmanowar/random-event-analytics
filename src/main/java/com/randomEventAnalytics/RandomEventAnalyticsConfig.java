@@ -35,6 +35,15 @@ public interface RandomEventAnalyticsConfig extends Config
 		return false;
 	}
 
+
+	@ConfigSection(
+		name = "Notifications",
+		description = "Notifications for Random Event timing & activity",
+		position = 0,
+		closedByDefault = true
+	)
+	String notificationSection = "notifications";
+
 	@ConfigSection(
 		name = "Experimental",
 		description = "Experimental features. May have a negative impact on performance.",
