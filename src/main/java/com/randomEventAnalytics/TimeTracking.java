@@ -106,6 +106,7 @@ public class TimeTracking
 		ticksSinceLastRandomEvent = 0;
 		secondsSinceLastRandomEvent = 0;
 		intervalsSinceLastRandom = 0;
+		this.setIntervalsSinceLastRandom(0);
 	}
 
 	public void setLoginTime(Instant instant) {

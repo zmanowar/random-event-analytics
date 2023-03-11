@@ -63,10 +63,11 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 		estimationInfo.setBorder(new EmptyBorder(0, 10, 0, 0));
 
 		estimationUntilNext.setFont(FontManager.getRunescapeSmallFont());
+		numIntervals.setFont(FontManager.getRunescapeSmallFont());
 
 		estimationInfo.add(new JLabel("Random Event Estimation"));
 		estimationInfo.add(estimationUntilNext);
-		estimationInfo.add(numIntervals);
+//		estimationInfo.add(numIntervals);
 
 		estimationPanel.add(new JLabel(new ImageIcon(ImageUtil.loadImageResource(getClass(), "estimation_icon.png"))),
 			BorderLayout.WEST);
@@ -100,7 +101,8 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 		inInstanceIcon.setVisible(false);
 		inInstanceIcon.setFont(new Font(Font.DIALOG, Font.PLAIN, 12));
 		inInstanceIcon.setForeground(Color.RED);
-		inInstanceIcon.setToolTipText("You are currently in an instance where random events cannot spawn.");
+		// Technically they can spawn in houses (I wonder what other instances.)
+		inInstanceIcon.setToolTipText("You are currently in an instance where random events may not spawn.");
 	}
 
 	public void eventRecordBoxUpdated(RandomEventRecordBox randomEventRecordBox, boolean isConfirmed)
@@ -153,7 +155,7 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 		}
 
 		spawnTimeProgressBar.setValue(Math.abs(TimeTracking.SPAWN_INTERVAL_SECONDS - timeTracking.getNextRandomEventEstimation()));
-		numIntervals.setText(String.valueOf(timeTracking.getIntervalsSinceLastRandom()));
+//		numIntervals.setText(String.valueOf(timeTracking.getIntervalsSinceLastRandom()));
 
 		SwingUtilities.invokeLater(() -> {
 			int estimatedSeconds = timeTracking.getNextRandomEventEstimation();

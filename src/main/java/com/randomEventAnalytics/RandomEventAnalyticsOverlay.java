@@ -39,7 +39,7 @@ public class RandomEventAnalyticsOverlay extends Overlay
 		{
 			int closestSpawnTimer = timeTracking.getNextRandomEventEstimation();
 			panelComponent.getChildren().add(LineComponent.builder()
-				.left(timeTracking.hasLoggedInLongEnoughForSpawn() ? "Event Spawn Window" : "Initial login countdown." +
+				.left(timeTracking.hasLoggedInLongEnoughForSpawn() ? "Random Event Eligible In" : "Initial login countdown." +
 					"..")
 				.right(RandomEventAnalyticsUtil.formatSeconds(Math.abs(closestSpawnTimer)))
 				.build());
