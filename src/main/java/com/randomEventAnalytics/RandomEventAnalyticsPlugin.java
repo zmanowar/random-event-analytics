@@ -11,6 +11,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import javax.inject.Inject;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Actor;
 import net.runelite.api.ChatMessageType;
@@ -73,6 +74,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	@Inject
 	private XpTrackerService xpTrackerService;
 
+	@Setter
 	private RandomEventAnalyticsPanel panel;
 	private String profile;
 	private int lastNotificationTick = -RANDOM_EVENT_TIMEOUT;
