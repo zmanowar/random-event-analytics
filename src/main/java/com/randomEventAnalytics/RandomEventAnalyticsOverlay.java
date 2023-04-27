@@ -1,15 +1,12 @@
 package com.randomEventAnalytics;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import javax.inject.Inject;
-import javax.swing.SwingUtilities;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.components.LineComponent;
 import net.runelite.client.ui.overlay.components.PanelComponent;
-import net.runelite.client.ui.overlay.components.TitleComponent;
 
 public class RandomEventAnalyticsOverlay extends Overlay
 {
@@ -18,11 +15,11 @@ public class RandomEventAnalyticsOverlay extends Overlay
 	private static final String TITLE_LABEL = "Random Event";
 	private final RandomEventAnalyticsConfig config;
 	private final PanelComponent panelComponent = new PanelComponent();
-	private final RandomEventAnalyticsTimeTracking timeTracking;
+	private final TimeTracking timeTracking;
 
 	@Inject
 	private RandomEventAnalyticsOverlay(RandomEventAnalyticsConfig config,
-										RandomEventAnalyticsTimeTracking timeTracking)
+										TimeTracking timeTracking)
 	{
 		setPosition(OverlayPosition.ABOVE_CHATBOX_RIGHT);
 		this.config = config;
@@ -32,24 +29,21 @@ public class RandomEventAnalyticsOverlay extends Overlay
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
-		if (!config.enableOverlay() || !config.enableEstimation())
+		if (!config.enableOverlay())
 		{
 			return null;
 		}
 		panelComponent.getChildren().clear();
 
-		int estimatedSeconds = timeTracking.getNextRandomEventEstimation();
-
-		// Build overlay title
-		panelComponent.getChildren().add(TitleComponent.builder()
-			.text(TITLE_LABEL)
-			.color(estimatedSeconds >= 0 ? Color.GREEN : Color.RED)
-			.build());
-
-		panelComponent.getChildren().add(LineComponent.builder()
-			.left(estimatedSeconds >= 0 ? TIME_UNTIL_LABEL : OVERESTIMATE_LABEL)
-			.right(RandomEventAnalyticsUtil.formatSeconds(Math.abs(estimatedSeconds)))
-			.build());
+		if (config.enableEstimation())
+		{
+			int closestSpawnTimer = timeTracking.getNextRandomEventEstimation();
+			panelComponent.getChildren().add(LineComponent.builder()
+				.left(timeTracking.hasLoggedInLongEnoughForSpawn() ? "Random Event Eligible In" : "Initial login countdown." +
+					"..")
+				.right(RandomEventAnalyticsUtil.formatSeconds(Math.abs(closestSpawnTimer)))
+				.build());
+		}
 
 		if (config.showDebug())
 		{

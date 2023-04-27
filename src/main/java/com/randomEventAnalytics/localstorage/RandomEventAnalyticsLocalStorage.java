@@ -92,6 +92,15 @@ public class RandomEventAnalyticsLocalStorage
 		return data;
 	}
 
+	public synchronized RandomEventRecord getMostRecentRandom() {
+		final ArrayList<RandomEventRecord> data = loadRandomEventRecords();
+		if (data.size() > 0) {
+			return data.get(data.size() - 1);
+		}
+
+		return null;
+	}
+
 	public synchronized boolean renameUsernameFolderToAccountHash(final String username, final long hash)
 	{
 		final File usernameDir = new File(RANDOM_EVENT_RECORD_DIR, username);
