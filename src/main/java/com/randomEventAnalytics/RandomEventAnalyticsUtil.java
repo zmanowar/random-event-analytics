@@ -25,14 +25,16 @@ public class RandomEventAnalyticsUtil
 		{
 			put(NpcID.BEE_KEEPER_6747,
 				new NpcIdWrapper(
-					new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/bee_keeper" +
+					new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads" +
+						"/bee_keeper" +
 						".png")),
 					false,
 					true)
 			);
 			put(NpcID.CAPT_ARNAV,
 				new NpcIdWrapper(
-					new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/capt_arnav" +
+					new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads" +
+						"/capt_arnav" +
 						".png")),
 					true,
 					true
@@ -89,7 +91,8 @@ public class RandomEventAnalyticsUtil
 			);
 			put(NpcID.POSTIE_PETE_6738,
 				new NpcIdWrapper(
-					new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/postie_pete" +
+					new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads" +
+						"/postie_pete" +
 						".png")),
 					false,
 					true
@@ -97,7 +100,8 @@ public class RandomEventAnalyticsUtil
 			);
 
 			NpcIdWrapper rickTurpentine = new NpcIdWrapper(
-				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/rick_turpentine" +
+				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads" +
+					"/rick_turpentine" +
 					".png")),
 				true,
 				true
@@ -106,13 +110,15 @@ public class RandomEventAnalyticsUtil
 			put(NpcID.RICK_TURPENTINE_376, rickTurpentine);
 
 			put(NpcID.SERGEANT_DAMIEN_6743, new NpcIdWrapper(
-				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/sergeant_damien" +
+				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads" +
+					"/sergeant_damien" +
 					".png")),
 				false,
 				true
 			));
 			put(NpcID.FREAKY_FORESTER_6748, new NpcIdWrapper(
-				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/freaky_forester" +
+				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads" +
+					"/freaky_forester" +
 					".png")),
 				false,
 				true

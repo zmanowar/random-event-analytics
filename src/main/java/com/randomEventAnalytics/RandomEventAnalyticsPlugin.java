@@ -330,6 +330,11 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		}
 	}
 
+	public int getNumberOfEventsLogged()
+	{
+		return localStorage.getNumberOfLoggedEvents();
+	}
+
 	private RandomEventRecord createRandomEventRecord(final NPC npc)
 	{
 		Player player = client.getLocalPlayer();

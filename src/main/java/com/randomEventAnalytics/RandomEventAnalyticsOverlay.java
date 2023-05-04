@@ -16,14 +16,16 @@ public class RandomEventAnalyticsOverlay extends Overlay
 	private final RandomEventAnalyticsConfig config;
 	private final PanelComponent panelComponent = new PanelComponent();
 	private final TimeTracking timeTracking;
+	private final RandomEventAnalyticsPlugin plugin;
 
 	@Inject
 	private RandomEventAnalyticsOverlay(RandomEventAnalyticsConfig config,
-										TimeTracking timeTracking)
+										TimeTracking timeTracking, RandomEventAnalyticsPlugin plugin)
 	{
 		setPosition(OverlayPosition.ABOVE_CHATBOX_RIGHT);
 		this.config = config;
 		this.timeTracking = timeTracking;
+		this.plugin = plugin;
 	}
 
 	@Override
@@ -64,8 +66,13 @@ public class RandomEventAnalyticsOverlay extends Overlay
 				.build());
 
 			panelComponent.getChildren().add(LineComponent.builder()
-				.left("Instance: ")
-				.right(String.valueOf(timeTracking.getSecondsInInstance()))
+				.left("Intervals: ")
+				.right(String.valueOf(timeTracking.getIntervalsSinceLastRandom()))
+				.build());
+
+			panelComponent.getChildren().add(LineComponent.builder()
+				.left("# of Events Logged: ")
+				.right(String.valueOf(plugin.getNumberOfEventsLogged()))
 				.build());
 		}
 
