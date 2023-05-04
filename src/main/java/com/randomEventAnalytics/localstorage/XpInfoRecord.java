@@ -20,7 +20,8 @@ public class XpInfoRecord
 	public final long overallExperience;
 	public final HashMap<String, Integer> xpPerSkill;
 
-	public static XpInfoRecord create(Client client, XpTrackerService xpTrackerService) {
+	public static XpInfoRecord create(Client client, XpTrackerService xpTrackerService)
+	{
 		Skill maximumActionsHrSkill = Skill.AGILITY;
 		int maximumActionsHr = xpTrackerService.getActionsHr(Skill.AGILITY);
 		Skill maximumXpHrSkill = Skill.AGILITY;

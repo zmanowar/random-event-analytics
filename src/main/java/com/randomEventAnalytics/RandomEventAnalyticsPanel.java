@@ -14,6 +14,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
+import lombok.Getter;
 import net.runelite.api.Client;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
@@ -26,10 +27,12 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 	private final ArrayList<RandomEventRecordBox> infoBoxes = new ArrayList<RandomEventRecordBox>();
 	private final ProgressBar spawnTimeProgressBar = new ProgressBar();
 	private final JPanel estimationPanel = new JPanel();
+	@Getter
 	private final JComponent eventPanel = new JPanel();
 	private final RandomEventAnalyticsConfig config;
 	private final Client client;
-	private final JLabel estimationUntilNext = new JLabel(RandomEventAnalyticsUtil.htmlLabel("Next Event Window: ", "--:--"));
+	private final JLabel estimationUntilNext = new JLabel(RandomEventAnalyticsUtil.htmlLabel("Next Event Window: ",
+		"--:--"));
 	private final JLabel countdownLabel = new JLabel(RandomEventAnalyticsUtil.htmlLabel("Next Event: ", "--:--"));
 	private final JLabel numIntervals = new JLabel();
 	private final JLabel inInstanceIcon = new JLabel("\u26A0");
@@ -149,7 +152,6 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 	{
 		spawnTimeProgressBar.setVisible(config.enableEstimation());
 		estimationUntilNext.setVisible(config.enableEstimation());
-		estimationPanel.setVisible(config.enableEstimation());
 		countdownLabel.setVisible(config.enableConfigCountdown());
 	}
 

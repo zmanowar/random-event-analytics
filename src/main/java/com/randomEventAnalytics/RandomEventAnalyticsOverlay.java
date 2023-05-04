@@ -16,14 +16,16 @@ public class RandomEventAnalyticsOverlay extends Overlay
 	private final RandomEventAnalyticsConfig config;
 	private final PanelComponent panelComponent = new PanelComponent();
 	private final TimeTracking timeTracking;
+	private final RandomEventAnalyticsPlugin plugin;
 
 	@Inject
 	private RandomEventAnalyticsOverlay(RandomEventAnalyticsConfig config,
-										TimeTracking timeTracking)
+										TimeTracking timeTracking, RandomEventAnalyticsPlugin plugin)
 	{
 		setPosition(OverlayPosition.ABOVE_CHATBOX_RIGHT);
 		this.config = config;
 		this.timeTracking = timeTracking;
+		this.plugin = plugin;
 	}
 
 	@Override
@@ -39,13 +41,15 @@ public class RandomEventAnalyticsOverlay extends Overlay
 		{
 			int closestSpawnTimer = timeTracking.getNextRandomEventEstimation();
 			panelComponent.getChildren().add(LineComponent.builder()
-				.left(timeTracking.hasLoggedInLongEnoughForSpawn() ? "Random Event Eligible In" : "Initial login countdown." +
+				.left(timeTracking.hasLoggedInLongEnoughForSpawn() ? "Random Event Eligible In" : "Initial login " +
+					"countdown." +
 					"..")
 				.right(RandomEventAnalyticsUtil.formatSeconds(Math.abs(closestSpawnTimer)))
 				.build());
 		}
 
-		if (config.enableConfigCountdown()) {
+		if (config.enableConfigCountdown())
+		{
 			int estimatedSeconds = timeTracking.getCountdownSeconds(config.countdownMinutes());
 			panelComponent.getChildren().add(LineComponent.builder()
 				.left(estimatedSeconds >= 0 ? TIME_UNTIL_LABEL : OVERESTIMATE_LABEL)
@@ -62,8 +66,13 @@ public class RandomEventAnalyticsOverlay extends Overlay
 				.build());
 
 			panelComponent.getChildren().add(LineComponent.builder()
-				.left("Instance: ")
-				.right(String.valueOf(timeTracking.getSecondsInInstance()))
+				.left("Intervals: ")
+				.right(String.valueOf(timeTracking.getIntervalsSinceLastRandom()))
+				.build());
+
+			panelComponent.getChildren().add(LineComponent.builder()
+				.left("# of Events Logged: ")
+				.right(String.valueOf(plugin.getNumberOfEventsLogged()))
 				.build());
 		}
 

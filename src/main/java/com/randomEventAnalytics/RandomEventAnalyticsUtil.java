@@ -25,27 +25,33 @@ public class RandomEventAnalyticsUtil
 		{
 			put(NpcID.BEE_KEEPER_6747,
 				new NpcIdWrapper(
-					new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/bee_keeper.png")),
+					new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads" +
+						"/bee_keeper" +
+						".png")),
 					false,
 					true)
 			);
 			put(NpcID.CAPT_ARNAV,
 				new NpcIdWrapper(
-					new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/capt_arnav.png")),
+					new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads" +
+						"/capt_arnav" +
+						".png")),
 					true,
 					true
 				)
 			);
 			put(NpcID.DRUNKEN_DWARF,
 				new NpcIdWrapper(
-					new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/drunken_dwarf.png")),
+					new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads" +
+						"/drunken_dwarf.png")),
 					true,
 					true
 				)
 			);
 			put(NpcID.FLIPPA_6744,
 				new NpcIdWrapper(
-					new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/flippa.png")),
+					new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/flippa" +
+						".png")),
 					false,
 					true
 				)
@@ -77,21 +83,26 @@ public class RandomEventAnalyticsUtil
 
 			put(NpcID.PILLORY_GUARD,
 				new NpcIdWrapper(
-					new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/pillory_guard.png")),
+					new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads" +
+						"/pillory_guard.png")),
 					false,
 					true
 				)
 			);
 			put(NpcID.POSTIE_PETE_6738,
 				new NpcIdWrapper(
-					new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/postie_pete.png")),
+					new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads" +
+						"/postie_pete" +
+						".png")),
 					false,
 					true
 				)
 			);
 
 			NpcIdWrapper rickTurpentine = new NpcIdWrapper(
-				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/rick_turpentine.png")),
+				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads" +
+					"/rick_turpentine" +
+					".png")),
 				true,
 				true
 			);
@@ -99,12 +110,16 @@ public class RandomEventAnalyticsUtil
 			put(NpcID.RICK_TURPENTINE_376, rickTurpentine);
 
 			put(NpcID.SERGEANT_DAMIEN_6743, new NpcIdWrapper(
-				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/sergeant_damien.png")),
+				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads" +
+					"/sergeant_damien" +
+					".png")),
 				false,
 				true
 			));
 			put(NpcID.FREAKY_FORESTER_6748, new NpcIdWrapper(
-				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/freaky_forester.png")),
+				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads" +
+					"/freaky_forester" +
+					".png")),
 				false,
 				true
 			));
@@ -123,7 +138,8 @@ public class RandomEventAnalyticsUtil
 			put(NpcID.GENIE_327, genie);
 
 			NpcIdWrapper drJekyll = new NpcIdWrapper(
-				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/dr_jekyll.png")),
+				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/dr_jekyll" +
+					".png")),
 				true,
 				false
 			);
@@ -145,7 +161,8 @@ public class RandomEventAnalyticsUtil
 			));
 
 			NpcIdWrapper mysteriousOldMan = new NpcIdWrapper(
-				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/mysterious_old_man.png")),
+				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads" +
+					"/mysterious_old_man.png")),
 				true,
 				true
 			);
@@ -156,7 +173,8 @@ public class RandomEventAnalyticsUtil
 			put(NpcID.MYSTERIOUS_OLD_MAN_6753, mysteriousOldMan); // Mime
 
 			put(NpcID.QUIZ_MASTER_6755, new NpcIdWrapper(
-				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/quiz_master.png")),
+				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/quiz_master" +
+					".png")),
 				false,
 				true
 			));
@@ -166,12 +184,14 @@ public class RandomEventAnalyticsUtil
 				true
 			));
 			put(NpcID.SANDWICH_LADY, new NpcIdWrapper(
-				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/sandwich_lady.png")),
+				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/sandwich_lady" +
+					".png")),
 				true,
 				true
 			));
 			put(NpcID.STRANGE_PLANT, new NpcIdWrapper(
-				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/strange_plant.png")),
+				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/strange_plant" +
+					".png")),
 				true,
 				false
 			));
@@ -180,7 +200,8 @@ public class RandomEventAnalyticsUtil
 	static final DecimalFormat TWO_DECIMAL_FORMAT = new DecimalFormat("0.00");
 	private static final String HTML_LABEL_TEMPLATE =
 		"<html><body style='color:%s'>%s<span style='color:white'>%s</span></body></html>";
-	private static final ImageIcon unknownNPC = new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/question_mark.png"));
+	private static final ImageIcon unknownNPC =
+		new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/question_mark.png"));
 
 	static
 	{

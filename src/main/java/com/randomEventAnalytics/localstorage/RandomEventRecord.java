@@ -25,7 +25,8 @@ public class RandomEventRecord
 		this.spawnedTime = spawnedTime;
 		this.secondsSinceLastRandomEvent = timeTracking.getTotalSecondsSinceLastRandomEvent();
 		this.ticksSinceLastRandomEvent = timeTracking.getTicksSinceLastRandomEvent();
-		this.secondsInInstance = timeTracking.getSecondsInInstance();
+		this.secondsInInstance = -1; // TODO: reimplement this at some point. Need more information about spawning in
+		// instances.
 		this.intervalsSinceLastRandom = timeTracking.getIntervalsSinceLastRandom();
 		this.xpInfoRecord = xpInfoRecord;
 		this.playerInfoRecord = playerInfoRecord;
