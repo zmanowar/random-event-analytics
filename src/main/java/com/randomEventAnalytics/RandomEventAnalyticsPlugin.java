@@ -97,6 +97,10 @@ public class RandomEventAnalyticsPlugin extends Plugin
 			NavigationButton.builder().tooltip("Random Event Analytics").icon(icon).panel(panel).priority(7).build();
 
 		clientToolbar.addNavigation(navButton);
+
+		if (!this.isLoggedIn()) return;
+		this.loadConfig();
+		loadPreviousRandomEvents();
 	}
 
 	@Override
@@ -106,6 +110,22 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		lastNotificationTick = 0;
 		clientToolbar.removeNavigation(navButton);
 		overlayManager.remove(overlay);
+	}
+
+	private boolean isLoggedIn() {
+		return client.getAccountHash() != -1;
+	}
+
+	private void loadConfig() {
+		profile = configManager.getRSProfileKey();
+		timeTracking.init(
+				Instant.now(),
+			getIntFromProfileConfig(RandomEventAnalyticsConfig.SECONDS_SINCE_LAST_RANDOM, 0),
+			getIntFromProfileConfig(RandomEventAnalyticsConfig.SECONDS_IN_INSTANCE, 0),
+			getIntFromProfileConfig(RandomEventAnalyticsConfig.TICKS_SINCE_LAST_RANDOM, 0),
+			getLastRandomSpawnInstant(),
+			getIntFromProfileConfig(RandomEventAnalyticsConfig.INTERVALS_SINCE_LAST_RANDOM, -1)
+		);
 	}
 
 	@Subscribe
@@ -138,6 +158,9 @@ public class RandomEventAnalyticsPlugin extends Plugin
 			{
 				timeTracking.setLoginTime(Instant.now());
 			}
+
+			this.loadConfig();
+
 			final long hash = client.getAccountHash();
 			if (String.valueOf(hash).equalsIgnoreCase(localStorage.getUsername()))
 			{
@@ -145,37 +168,29 @@ public class RandomEventAnalyticsPlugin extends Plugin
 			}
 
 			String username = client.getUsername();
-			if (username != null && username.length() > 0 && hash != -1)
+			if (username != null && username.length() > 0)
 			{
 				localStorage.renameUsernameFolderToAccountHash(username, hash);
 			}
 
 			if (localStorage.setPlayerUsername(String.valueOf(hash)))
 			{
-				profile = configManager.getRSProfileKey();
-				timeTracking.init(
-					Instant.now(),
-					getIntFromProfileConfig(RandomEventAnalyticsConfig.SECONDS_SINCE_LAST_RANDOM, 0),
-					getIntFromProfileConfig(RandomEventAnalyticsConfig.SECONDS_IN_INSTANCE, 0),
-					getIntFromProfileConfig(RandomEventAnalyticsConfig.TICKS_SINCE_LAST_RANDOM, 0),
-					getLastRandomSpawnInstant(),
-					getIntFromProfileConfig(RandomEventAnalyticsConfig.INTERVALS_SINCE_LAST_RANDOM, -1)
-				);
 				loadPreviousRandomEvents();
 			}
 		}
-		else if (state == GameState.CONNECTION_LOST || state == GameState.UNKNOWN || state == GameState.LOADING)
+		else if (state == GameState.CONNECTION_LOST || state == GameState.UNKNOWN)
 		{
 			updateConfig();
 		}
 		else if (state == GameState.HOPPING)
 		{
+			updateConfig();
 			timeTracking.setLoginTime(null);
 		}
 		else if (state == GameState.LOGIN_SCREEN)
 		{
-			timeTracking.setLoginTime(null);
 			updateConfig();
+			timeTracking.setLoginTime(null);
 			panel.updateEstimation();
 		}
 	}

@@ -36,18 +36,42 @@ public interface RandomEventAnalyticsConfig extends Config
 	}
 
 
+//	@ConfigSection(
+//		name = "Notifications",
+//		description = "Notifications for Random Event timing & activity",
+//		position = 0,
+//		closedByDefault = true
+//	)
+//	String notificationSection = "notifications";
+
 	@ConfigSection(
-		name = "Notifications",
-		description = "Notifications for Random Event timing & activity",
-		position = 0,
-		closedByDefault = true
+		name = "Countdown",
+		description = "Logged-in countdown configuration",
+		position = 1,
+		closedByDefault = false
 	)
-	String notificationSection = "notifications";
+	String countdownSection = "countdown";
+
+	@ConfigItem(
+		keyName = "enableConfigCountdown",
+		name = "Enable Countdown",
+		description = "Enables the time since last random countdown",
+		section = countdownSection
+	)
+	default boolean enableConfigCountdown() { return true; }
+
+	@ConfigItem(
+		keyName = "countdownMinutes",
+		name = "Countdown (Minutes)",
+		description = "Number of minutes the countdown should last",
+		section = countdownSection
+	)
+	default int countdownMinutes() { return 60; }
 
 	@ConfigSection(
 		name = "Experimental",
 		description = "Experimental features. May have a negative impact on performance.",
-		position = 0,
+		position = 2,
 		closedByDefault = true
 	)
 	String experimentalSection = "experimental";

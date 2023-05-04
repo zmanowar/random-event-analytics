@@ -45,6 +45,15 @@ public class RandomEventAnalyticsOverlay extends Overlay
 				.build());
 		}
 
+		if (config.enableConfigCountdown()) {
+			int estimatedSeconds = timeTracking.getCountdownSeconds(config.countdownMinutes());
+			panelComponent.getChildren().add(LineComponent.builder()
+				.left(estimatedSeconds >= 0 ? TIME_UNTIL_LABEL : OVERESTIMATE_LABEL)
+				.right(RandomEventAnalyticsUtil.formatSeconds(Math.abs(estimatedSeconds)))
+				.build());
+		}
+
+
 		if (config.showDebug())
 		{
 			panelComponent.getChildren().add(LineComponent.builder()

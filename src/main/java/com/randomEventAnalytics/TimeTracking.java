@@ -20,6 +20,7 @@ public class TimeTracking
 	public static final int SPAWN_INTERVAL_SECONDS = 60 * 5;
 	private static final int SPAWN_INTERVAL_MARGIN_SECONDS = 0;
 
+	private int storedSecondsSinceLastRandomEvent;
 	@Setter
 	private int secondsSinceLastRandomEvent;
 	@Getter
@@ -35,10 +36,10 @@ public class TimeTracking
 	@Getter
 	private Instant loginTime;
 
-	public void init(Instant loginTime, int secondsSinceLastRandomEvent, int secondsInInstance, int ticksSinceLastRandomEvent, Instant lastRandomSpawnTime, int intervalsSinceLastRandom)
+	public void init(Instant loginTime, int storedSecondsSinceLastRandomEvent, int secondsInInstance, int ticksSinceLastRandomEvent, Instant lastRandomSpawnTime, int intervalsSinceLastRandom)
 	{
 		this.loginTime = loginTime;
-		this.secondsSinceLastRandomEvent = secondsSinceLastRandomEvent;
+		this.storedSecondsSinceLastRandomEvent = storedSecondsSinceLastRandomEvent;
 		this.secondsInInstance = secondsInInstance;
 		this.ticksSinceLastRandomEvent = ticksSinceLastRandomEvent;
 		this.lastRandomSpawnTime = lastRandomSpawnTime;
@@ -56,11 +57,13 @@ public class TimeTracking
 	 *
 	 */
 	public int getTotalSecondsSinceLastRandomEvent() {
-		if (this.loginTime == null) return -1;
+		if (this.loginTime == null) return this.secondsSinceLastRandomEvent;
 		if (this.lastRandomSpawnTime != null && this.lastRandomSpawnTime.isAfter(this.loginTime)) {
 			return (int) Duration.between(this.lastRandomSpawnTime, Instant.now()).toMillis() / 1000;
 		}
-		return this.secondsSinceLastRandomEvent + this.getSecondsSinceLogin();
+		Duration duration = Duration.between(this.loginTime, Instant.now());
+		this.secondsSinceLastRandomEvent = this.storedSecondsSinceLastRandomEvent + (int) duration.getSeconds();
+		return this.secondsSinceLastRandomEvent;
 	}
 
 	public void incrementTotalLoggedInTicks()
@@ -136,5 +139,9 @@ public class TimeTracking
 		} else {
 			this.intervalsSinceLastRandom = numIntervals;
 		}
+	}
+
+	public int getCountdownSeconds(int numMinutesPerRandom) {
+		return (numMinutesPerRandom * 60) - this.getTotalSecondsSinceLastRandomEvent();
 	}
 }

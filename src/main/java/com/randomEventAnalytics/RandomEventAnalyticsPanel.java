@@ -29,7 +29,8 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 	private final JComponent eventPanel = new JPanel();
 	private final RandomEventAnalyticsConfig config;
 	private final Client client;
-	private final JLabel estimationUntilNext = new JLabel(RandomEventAnalyticsUtil.htmlLabel("Next Event: ", "--:--"));
+	private final JLabel estimationUntilNext = new JLabel(RandomEventAnalyticsUtil.htmlLabel("Next Event Window: ", "--:--"));
+	private final JLabel countdownLabel = new JLabel(RandomEventAnalyticsUtil.htmlLabel("Next Event: ", "--:--"));
 	private final JLabel numIntervals = new JLabel();
 	private final JLabel inInstanceIcon = new JLabel("\u26A0");
 	TimeTracking timeTracking;
@@ -63,10 +64,12 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 		estimationInfo.setBorder(new EmptyBorder(0, 10, 0, 0));
 
 		estimationUntilNext.setFont(FontManager.getRunescapeSmallFont());
+		countdownLabel.setFont(FontManager.getRunescapeSmallFont());
 		numIntervals.setFont(FontManager.getRunescapeSmallFont());
 
 		estimationInfo.add(new JLabel("Random Event Estimation"));
 		estimationInfo.add(estimationUntilNext);
+		estimationInfo.add(countdownLabel);
 //		estimationInfo.add(numIntervals);
 
 		estimationPanel.add(new JLabel(new ImageIcon(ImageUtil.loadImageResource(getClass(), "estimation_icon.png"))),
@@ -144,12 +147,15 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 
 	public void updateConfig()
 	{
+		spawnTimeProgressBar.setVisible(config.enableEstimation());
+		estimationUntilNext.setVisible(config.enableEstimation());
 		estimationPanel.setVisible(config.enableEstimation());
+		countdownLabel.setVisible(config.enableConfigCountdown());
 	}
 
 	public void updateEstimation()
 	{
-		if (!config.enableEstimation())
+		if (!config.enableEstimation() && !config.enableConfigCountdown())
 		{
 			return;
 		}
@@ -160,9 +166,11 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 		SwingUtilities.invokeLater(() -> {
 			int estimatedSeconds = timeTracking.getNextRandomEventEstimation();
 			inInstanceIcon.setVisible(client.isInInstancedRegion());
-			estimationUntilNext.setText(RandomEventAnalyticsUtil.htmlLabel("Next Event: ",
+			estimationUntilNext.setText(RandomEventAnalyticsUtil.htmlLabel("Next Event Window: ",
 				RandomEventAnalyticsUtil.formatSeconds(Math.abs(estimatedSeconds))));
 			estimationUntilNext.setToolTipText("Intervals: " + timeTracking.getIntervalsSinceLastRandom());
+			countdownLabel.setText(RandomEventAnalyticsUtil.htmlLabel("Next Event: ",
+				RandomEventAnalyticsUtil.formatSeconds(Math.abs(timeTracking.getCountdownSeconds(config.countdownMinutes())))));
 		});
 	}
 }
