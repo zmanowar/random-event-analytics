@@ -106,7 +106,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	@Override
 	protected void shutDown()
 	{
-		updateConfig();
+		persistTimeTrackingConfig();
 		lastNotificationTick = 0;
 		clientToolbar.removeNavigation(navButton);
 		overlayManager.remove(overlay);
@@ -120,11 +120,8 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		profile = configManager.getRSProfileKey();
 		timeTracking.init(
 				Instant.now(),
-			getIntFromProfileConfig(RandomEventAnalyticsConfig.SECONDS_SINCE_LAST_RANDOM, 0),
-			getIntFromProfileConfig(RandomEventAnalyticsConfig.SECONDS_IN_INSTANCE, 0),
-			getIntFromProfileConfig(RandomEventAnalyticsConfig.TICKS_SINCE_LAST_RANDOM, 0),
 			getLastRandomSpawnInstant(),
-			getIntFromProfileConfig(RandomEventAnalyticsConfig.INTERVALS_SINCE_LAST_RANDOM, -1)
+			configManager
 		);
 	}
 
@@ -142,7 +139,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	@Subscribe
 	public void onClientShutdown(ClientShutdown event)
 	{
-		updateConfig();
+		persistTimeTrackingConfig();
 	}
 
 
@@ -180,16 +177,16 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		}
 		else if (state == GameState.CONNECTION_LOST || state == GameState.UNKNOWN)
 		{
-			updateConfig();
+			persistTimeTrackingConfig();
 		}
 		else if (state == GameState.HOPPING)
 		{
-			updateConfig();
+			persistTimeTrackingConfig();
 			timeTracking.setLoginTime(null);
 		}
 		else if (state == GameState.LOGIN_SCREEN)
 		{
-			updateConfig();
+			persistTimeTrackingConfig();
 			timeTracking.setLoginTime(null);
 			panel.updateEstimation();
 		}
@@ -224,19 +221,6 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		{
 			log.debug("No config loaded for: {}@{}", key, profile);
 			return null;
-		}
-	}
-
-	private int getIntFromProfileConfig(String key, int _default)
-	{
-		try
-		{
-			return configManager.getConfiguration(RandomEventAnalyticsConfig.CONFIG_GROUP, profile, key, int.class);
-		}
-		catch (NullPointerException e)
-		{
-			log.debug("No config loaded for: {}@{}", key, profile);
-			return _default;
 		}
 	}
 
@@ -309,26 +293,13 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		if (client.getGameState() == GameState.LOGGED_IN)
 		{
 			panel.updateEstimation();
-			timeTracking.incrementTotalLoggedInTicks();
+			timeTracking.onTick();
 		}
 	}
 
-	private void updateConfig()
+	private void persistTimeTrackingConfig()
 	{
-		configManager.setConfiguration(RandomEventAnalyticsConfig.CONFIG_GROUP, profile,
-			RandomEventAnalyticsConfig.SECONDS_SINCE_LAST_RANDOM, timeTracking.getTotalSecondsSinceLastRandomEvent());
-		if (timeTracking.getLastRandomSpawnTime() != null)
-		{
-			configManager.setConfiguration(RandomEventAnalyticsConfig.CONFIG_GROUP, profile,
-				RandomEventAnalyticsConfig.LAST_RANDOM_SPAWN_INSTANT, timeTracking.getLastRandomSpawnTime());
-		}
-		configManager.setConfiguration(RandomEventAnalyticsConfig.CONFIG_GROUP, profile,
-			RandomEventAnalyticsConfig.INTERVALS_SINCE_LAST_RANDOM, timeTracking.getIntervalsSinceLastRandom());
-		configManager.setConfiguration(RandomEventAnalyticsConfig.CONFIG_GROUP, profile,
-			RandomEventAnalyticsConfig.TICKS_SINCE_LAST_RANDOM, timeTracking.getTicksSinceLastRandomEvent());
-		// TODO: Convert this to use a new Instant variable to calculate time in instance.
-		configManager.setConfiguration(RandomEventAnalyticsConfig.CONFIG_GROUP, profile,
-			RandomEventAnalyticsConfig.SECONDS_IN_INSTANCE, timeTracking.getSecondsInInstance());
+		timeTracking.persistConfig();
 	}
 
 	public void addRandomEvent(final NPC npc)
@@ -340,19 +311,16 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	{
 		localStorage.addRandomEventRecord(record);
 		panel.addRandom(record);
-		timeTracking.setRandomEventSpawned();
-
 		/**
 		 * The strange plant is added after the confirmation is clicked. This offsets
 		 * our timers since the time the plant spawned.
-		 * TODO: Determine if there's a way to correctly set ticksSinceLastRandom
-		 * 	and check to see if this is correctly calculating.
 		 */
 		if (isStrangePlant(record.npcInfoRecord.npcId))
 		{
-			timeTracking.correctStrangePlantSpawn(record);
+			timeTracking.setStrangePlantSpawned(record);
+		} else {
+			timeTracking.setRandomEventSpawned();
 		}
-		updateConfig();
 	}
 
 	private RandomEventRecord createRandomEventRecord(final NPC npc)

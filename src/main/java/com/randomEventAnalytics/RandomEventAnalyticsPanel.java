@@ -149,7 +149,6 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 	{
 		spawnTimeProgressBar.setVisible(config.enableEstimation());
 		estimationUntilNext.setVisible(config.enableEstimation());
-		estimationPanel.setVisible(config.enableEstimation());
 		countdownLabel.setVisible(config.enableConfigCountdown());
 	}
 
