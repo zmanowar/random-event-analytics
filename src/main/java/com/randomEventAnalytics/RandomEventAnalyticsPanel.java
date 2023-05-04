@@ -29,7 +29,8 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 	private final JComponent eventPanel = new JPanel();
 	private final RandomEventAnalyticsConfig config;
 	private final Client client;
-	private final JLabel estimationUntilNext = new JLabel(RandomEventAnalyticsUtil.htmlLabel("Next Event Window: ", "--:--"));
+	private final JLabel estimationUntilNext = new JLabel(RandomEventAnalyticsUtil.htmlLabel("Next Event Window: ",
+		"--:--"));
 	private final JLabel countdownLabel = new JLabel(RandomEventAnalyticsUtil.htmlLabel("Next Event: ", "--:--"));
 	private final JLabel numIntervals = new JLabel();
 	private final JLabel inInstanceIcon = new JLabel("\u26A0");

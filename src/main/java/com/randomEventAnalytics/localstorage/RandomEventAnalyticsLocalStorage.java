@@ -92,9 +92,11 @@ public class RandomEventAnalyticsLocalStorage
 		return data;
 	}
 
-	public synchronized RandomEventRecord getMostRecentRandom() {
+	public synchronized RandomEventRecord getMostRecentRandom()
+	{
 		final ArrayList<RandomEventRecord> data = loadRandomEventRecords();
-		if (data.size() > 0) {
+		if (data.size() > 0)
+		{
 			return data.get(data.size() - 1);
 		}
 

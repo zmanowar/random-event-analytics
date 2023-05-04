@@ -155,7 +155,8 @@ public class TimeTracking
 	}
 
 	// TODO: Rework how instances are calculated
-	public int getSecondsInInstance() {
+	public int getSecondsInInstance()
+	{
 		return this.getConfigSecondsInInstance();
 	}
 
@@ -185,11 +186,13 @@ public class TimeTracking
 		return getIntFromConfig(RandomEventAnalyticsConfig.SECONDS_SINCE_LAST_RANDOM, 0);
 	}
 
-	private int getConfigSecondsInInstance() {
+	private int getConfigSecondsInInstance()
+	{
 		return getIntFromConfig(RandomEventAnalyticsConfig.SECONDS_IN_INSTANCE, -1);
 	}
 
-	public void persistConfig() {
+	public void persistConfig()
+	{
 		saveConfig(RandomEventAnalyticsConfig.SECONDS_SINCE_LAST_RANDOM, getTotalSecondsSinceLastRandomEvent());
 		saveConfig(RandomEventAnalyticsConfig.INTERVALS_SINCE_LAST_RANDOM, getIntervalsSinceLastRandom());
 		saveConfig(RandomEventAnalyticsConfig.TICKS_SINCE_LAST_RANDOM, getTicksSinceLastRandomEvent());
@@ -200,8 +203,9 @@ public class TimeTracking
 		}
 	}
 
-	public void setConfigAfterSpawn() {
-		saveConfig(RandomEventAnalyticsConfig.SECONDS_SINCE_LAST_RANDOM,0);
+	public void setConfigAfterSpawn()
+	{
+		saveConfig(RandomEventAnalyticsConfig.SECONDS_SINCE_LAST_RANDOM, 0);
 		saveConfig(RandomEventAnalyticsConfig.INTERVALS_SINCE_LAST_RANDOM, 0);
 		saveConfig(RandomEventAnalyticsConfig.TICKS_SINCE_LAST_RANDOM, 0);
 		saveConfig(RandomEventAnalyticsConfig.SECONDS_IN_INSTANCE, 0);
@@ -211,7 +215,8 @@ public class TimeTracking
 		}
 	}
 
-	private <T> void saveConfig(String key, T value) {
+	private <T> void saveConfig(String key, T value)
+	{
 		configManager.setRSProfileConfiguration(RandomEventAnalyticsConfig.CONFIG_GROUP,
 			key, value);
 	}

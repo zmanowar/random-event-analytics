@@ -39,13 +39,15 @@ public class RandomEventAnalyticsOverlay extends Overlay
 		{
 			int closestSpawnTimer = timeTracking.getNextRandomEventEstimation();
 			panelComponent.getChildren().add(LineComponent.builder()
-				.left(timeTracking.hasLoggedInLongEnoughForSpawn() ? "Random Event Eligible In" : "Initial login countdown." +
+				.left(timeTracking.hasLoggedInLongEnoughForSpawn() ? "Random Event Eligible In" : "Initial login " +
+					"countdown." +
 					"..")
 				.right(RandomEventAnalyticsUtil.formatSeconds(Math.abs(closestSpawnTimer)))
 				.build());
 		}
 
-		if (config.enableConfigCountdown()) {
+		if (config.enableConfigCountdown())
+		{
 			int estimatedSeconds = timeTracking.getCountdownSeconds(config.countdownMinutes());
 			panelComponent.getChildren().add(LineComponent.builder()
 				.left(estimatedSeconds >= 0 ? TIME_UNTIL_LABEL : OVERESTIMATE_LABEL)

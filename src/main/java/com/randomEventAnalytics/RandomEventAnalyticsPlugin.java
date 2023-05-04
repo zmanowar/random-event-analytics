@@ -98,7 +98,10 @@ public class RandomEventAnalyticsPlugin extends Plugin
 
 		clientToolbar.addNavigation(navButton);
 
-		if (!this.isLoggedIn()) return;
+		if (!this.isLoggedIn())
+		{
+			return;
+		}
 		this.loadConfig();
 		loadPreviousRandomEvents();
 	}
@@ -112,14 +115,16 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		overlayManager.remove(overlay);
 	}
 
-	private boolean isLoggedIn() {
+	private boolean isLoggedIn()
+	{
 		return client.getAccountHash() != -1;
 	}
 
-	private void loadConfig() {
+	private void loadConfig()
+	{
 		profile = configManager.getRSProfileKey();
 		timeTracking.init(
-				Instant.now(),
+			Instant.now(),
 			getLastRandomSpawnInstant(),
 			configManager
 		);
@@ -318,7 +323,9 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		if (isStrangePlant(record.npcInfoRecord.npcId))
 		{
 			timeTracking.setStrangePlantSpawned(record);
-		} else {
+		}
+		else
+		{
 			timeTracking.setRandomEventSpawned();
 		}
 	}
