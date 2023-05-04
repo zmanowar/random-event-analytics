@@ -27,4 +27,24 @@ public class TimeTrackingTest
 
 		Assert.assertEquals(minutesSinceLastSpawn / TimeTracking.SPAWN_INTERVAL_SECONDS, tracking.getIntervalsSinceLastRandom());
 	}
+
+	@Test
+	public void testResetsIntervalsAndSecondsWhenSpawned()
+	{
+		int minutesSinceLastSpawn = 60;
+		TimeTracking tracking = new TimeTracking();
+		tracking.init(
+			Instant.now(),
+			minutesSinceLastSpawn * 60,
+			0,
+			365,
+			null,
+			minutesSinceLastSpawn / 5
+		);
+
+		tracking.setRandomEventSpawned();
+
+		Assert.assertEquals(0, tracking.getIntervalsSinceLastRandom());
+		Assert.assertEquals(0, tracking.getTotalSecondsSinceLastRandomEvent());
+	}
 }

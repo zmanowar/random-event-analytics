@@ -108,6 +108,7 @@ public class TimeTracking
 		secondsInInstance = 0;
 		ticksSinceLastRandomEvent = 0;
 		secondsSinceLastRandomEvent = 0;
+		storedSecondsSinceLastRandomEvent = 0;
 		intervalsSinceLastRandom = 0;
 		this.setIntervalsSinceLastRandom(0);
 	}
