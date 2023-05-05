@@ -161,8 +161,6 @@ public class RandomEventAnalyticsPlugin extends Plugin
 				timeTracking.setLoginTime(Instant.now());
 			}
 
-			this.loadConfig();
-
 			final long hash = client.getAccountHash();
 			if (String.valueOf(hash).equalsIgnoreCase(localStorage.getUsername()))
 			{
@@ -177,6 +175,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 
 			if (localStorage.setPlayerUsername(String.valueOf(hash)))
 			{
+				this.loadConfig();
 				loadPreviousRandomEvents();
 			}
 		}
