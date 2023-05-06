@@ -4,6 +4,7 @@ import com.google.inject.Singleton;
 import com.randomEventAnalytics.localstorage.RandomEventRecord;
 import java.time.Duration;
 import java.time.Instant;
+import javax.inject.Inject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.config.ConfigManager;
@@ -28,13 +29,13 @@ public class TimeTracking
 	@Getter
 	private Instant loginTime;
 
+	@Inject
 	private ConfigManager configManager;
 
-	public void init(Instant loginTime, Instant lastRandomSpawnInstant, ConfigManager configManager)
+	public void init(Instant loginTime, Instant lastRandomSpawnInstant)
 	{
 		this.loginTime = loginTime;
 		this.lastRandomSpawnInstant = lastRandomSpawnInstant;
-		this.configManager = configManager;
 	}
 
 	public int getTotalSecondsSinceLastRandomEvent()
@@ -226,8 +227,13 @@ public class TimeTracking
 
 	private <T> void saveConfig(String key, T value)
 	{
-		configManager.setRSProfileConfiguration(RandomEventAnalyticsConfig.CONFIG_GROUP,
-			key, value);
+		try
+		{
+			configManager.setRSProfileConfiguration(RandomEventAnalyticsConfig.CONFIG_GROUP,
+				key, value);
+		} catch (NullPointerException e) {
+			log.debug("Error setting config {}: {} | ConfigManager most likely not set", key, value);
+		}
 	}
 
 	private int getIntFromConfig(String key, int _default)
@@ -238,8 +244,14 @@ public class TimeTracking
 		}
 		catch (NullPointerException e)
 		{
-			log.debug("No config loaded for: {}@{}", key, configManager.getRSProfileKey());
-			return _default;
+			try
+			{
+				log.debug("No config loaded for: {}@{}", key, configManager.getRSProfileKey());
+				return _default;
+			} catch (NullPointerException configError) {
+				log.debug("Error loading configManager");
+				return _default;
+			}
 		}
 	}
 }

@@ -125,8 +125,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		profile = configManager.getRSProfileKey();
 		timeTracking.init(
 			Instant.now(),
-			getLastRandomSpawnInstant(),
-			configManager
+			getLastRandomSpawnInstant()
 		);
 	}
 

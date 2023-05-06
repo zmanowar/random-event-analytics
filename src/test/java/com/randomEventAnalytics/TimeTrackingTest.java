@@ -42,8 +42,7 @@ public class TimeTrackingTest
 		TimeTracking tracking = new TimeTracking();
 		tracking.init(
 			Instant.now(),
-			null,
-			configManager
+			null
 		);
 
 		Assert.assertEquals(secondsSinceLastSpawn / TimeTracking.SPAWN_INTERVAL_SECONDS, tracking.getIntervalsSinceLastRandom());
@@ -58,8 +57,7 @@ public class TimeTrackingTest
 		TimeTracking tracking = new TimeTracking();
 		tracking.init(
 			Instant.now(),
-			now.minus(secondsSinceLastSpawn, ChronoUnit.SECONDS),
-			configManager
+			now.minus(secondsSinceLastSpawn, ChronoUnit.SECONDS)
 		);
 
 		tracking.setRandomEventSpawned();
@@ -87,8 +85,7 @@ public class TimeTrackingTest
 		TimeTracking tracking = new TimeTracking();
 		tracking.init(
 			loginTime,
-			loginTime.minus(secondsSinceLastSpawn, ChronoUnit.SECONDS),
-			configManager
+			loginTime.minus(secondsSinceLastSpawn, ChronoUnit.SECONDS)
 		);
 
 		mockConfigGet(RandomEventAnalyticsConfig.INTERVALS_SINCE_LAST_RANDOM,0);
