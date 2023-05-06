@@ -163,6 +163,7 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 		}
 
 		spawnTimeProgressBar.setValue(Math.abs(TimeTracking.SPAWN_INTERVAL_SECONDS - timeTracking.getNextRandomEventEstimation()));
+//		spawnTimeProgressBar.setCenterLabel(timeTracking.getProbabilityForNextWindow() * 100 + "% Chance This Interval");
 //		numIntervals.setText(String.valueOf(timeTracking.getIntervalsSinceLastRandom()));
 
 		SwingUtilities.invokeLater(() -> {

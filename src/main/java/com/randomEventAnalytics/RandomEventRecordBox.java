@@ -34,9 +34,16 @@ public class RandomEventRecordBox extends JPanel
 	private static String buildToolTip(RandomEventRecord record)
 	{
 		String data =
-			"<html> " + "NPC ID: " + record.npcInfoRecord.npcId + "<br>NPC Combat Level: " + record.npcInfoRecord.combatLevel + "<br>\u0394 Event Time: " + RandomEventAnalyticsUtil.formatSeconds(record.secondsSinceLastRandomEvent) + "<br>Spawned Time: " + new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(record.spawnedTime) + "<br>XP/Hr: " + RandomEventAnalyticsUtil.formatNumber(record.xpInfoRecord.totalXpHr) + "<br>Total XP: " + RandomEventAnalyticsUtil.formatNumber(record.xpInfoRecord.overallExperience);
+			"<html> " + "NPC ID: " + record.npcInfoRecord.npcId + "<br>\u0394 Event Time: " + RandomEventAnalyticsUtil.formatSeconds(record.secondsSinceLastRandomEvent) + "<br>Spawned Time: " + new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(record.spawnedTime);
 		data += "<br>PlayerLocal: <p style=\"font-size: 0.95em\">" + "(X: " + record.playerInfoRecord.localX + " , Y: "
 			+ record.playerInfoRecord.localY + ")</p>";
+		data += "Intervals: ";
+		if (record.intervalsSinceLastRandom > 0)
+		{
+			data += record.intervalsSinceLastRandom + "<p style=\"font-size: 0.95em\">(" + record.intervalsSinceLastRandom * 5 + " minutes)</p>";
+		} else {
+			data += "Record has no data<br>";
+		}
 		data += "World: <p style=\"font-size: 0.95em\">" + "(X: " + record.playerInfoRecord.worldX + " , Y: " + record.playerInfoRecord.worldY + " , P: " + record.playerInfoRecord.worldPlane + ")</p>";
 		data += "</html>";
 		return data;

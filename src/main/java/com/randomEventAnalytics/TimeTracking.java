@@ -84,7 +84,7 @@ public class TimeTracking
 
 		if (!hasLoggedInLongEnoughForSpawn())
 		{
-			// Initial spawn, must wait 5 minutes
+			// Initial login, must wait 5 minutes
 			return SPAWN_INTERVAL_SECONDS - loginTime;
 		}
 
@@ -164,6 +164,15 @@ public class TimeTracking
 	{
 		return (numMinutesPerRandom * 60) - this.getTotalSecondsSinceLastRandomEvent();
 	}
+
+	public double getProbabilityForNextWindow() {
+		int intervalsAfterHour = this.getIntervalsSinceLastRandom() - (60 / 5);
+		if (intervalsAfterHour < 0) {
+			return 0;
+		}
+		return ((double) intervalsAfterHour)/12;
+	}
+
 
 	private int getConfigIntervalsSinceLastRandom()
 	{

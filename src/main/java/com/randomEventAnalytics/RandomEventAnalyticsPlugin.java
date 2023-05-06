@@ -235,6 +235,8 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		if (randomEvents.size() > 0)
 		{
 			randomEvents.forEach(panel::addRandom);
+		} else {
+			panel.clearAllRandomsView();
 		}
 	}
 
