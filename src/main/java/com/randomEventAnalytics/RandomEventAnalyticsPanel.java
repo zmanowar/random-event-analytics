@@ -37,7 +37,8 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 	private final JLabel countdownLabel = new JLabel(RandomEventAnalyticsUtil.htmlLabel("Next Event: ", "--:--"));
 	private final JLabel numIntervals = new JLabel();
 	private final JLabel inInstanceIcon = new JLabel("\u26A0");
-	public SimpleDateFormat timeFormat = new SimpleDateFormat("MMM dd, h:mm a");
+	public SimpleDateFormat shortTimeFormat = new SimpleDateFormat("MMM dd, h:mm a");
+	public SimpleDateFormat longTimeFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 	TimeTracking timeTracking;
 	RandomEventAnalyticsPlugin plugin;
 
@@ -157,9 +158,11 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 		estimationUntilNext.setVisible(config.enableEstimation());
 		countdownLabel.setVisible(config.enableConfigCountdown());
 		if (config.timeFormatMode() == TimeFormat.TIME_12H) {
-			timeFormat = new SimpleDateFormat("MMM dd, h:mm a");
+			shortTimeFormat = new SimpleDateFormat("MMM dd, h:mm a");
+			longTimeFormat = new SimpleDateFormat("yyyy-MM-dd h:mm:ss a");
 		} else {
-			timeFormat = new SimpleDateFormat("MMM dd, HH:mm");
+			shortTimeFormat = new SimpleDateFormat("MMM dd, HH:mm");
+			longTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		}
 
 	}

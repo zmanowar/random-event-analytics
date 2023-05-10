@@ -33,10 +33,11 @@ public class RandomEventRecordBox extends JPanel
 		buildRandomEventPanel(randomEvent, isConfirmed);
 	}
 
-	private static String buildToolTip(RandomEventRecord record)
+	private String buildToolTip(RandomEventRecord record)
 	{
+		String spawnedTime = panel.longTimeFormat.format(record.spawnedTime);
 		String data =
-			"<html> " + "NPC ID: " + record.npcInfoRecord.npcId + "<br>\u0394 Event Time: " + RandomEventAnalyticsUtil.formatSeconds(record.secondsSinceLastRandomEvent) + "<br>Spawned Time: " + new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(record.spawnedTime);
+			"<html> " + "NPC ID: " + record.npcInfoRecord.npcId + "<br>\u0394 Event Time: " + RandomEventAnalyticsUtil.formatSeconds(record.secondsSinceLastRandomEvent) + "<br>Spawned Time: " + spawnedTime;
 		data += "<br>PlayerLocal: <p style=\"font-size: 0.95em\">" + "(X: " + record.playerInfoRecord.localX + " , Y: "
 			+ record.playerInfoRecord.localY + ")</p>";
 		data += "Intervals: ";
@@ -60,7 +61,7 @@ public class RandomEventRecordBox extends JPanel
 	private JPanel buildRandomEventPanel(RandomEventRecord record, boolean isConfirmed)
 	{
 		JLabel randomName = new JLabel(record.npcInfoRecord.npcName);
-		spawnedTimeLabel.setText(panel.timeFormat.format(record.spawnedTime));
+		spawnedTimeLabel.setText(panel.shortTimeFormat.format(record.spawnedTime));
 
 		this.setBorder(new EmptyBorder(10, 10, 10, 10));
 		this.setBackground(ColorScheme.DARKER_GRAY_COLOR);
@@ -117,6 +118,7 @@ public class RandomEventRecordBox extends JPanel
 	void update() {
 		// TODO: We'll eventually want to update the rest of the values, but
 		//		for now just the spawned time (when config changed)
-		spawnedTimeLabel.setText(panel.timeFormat.format(randomEvent.spawnedTime));
+		spawnedTimeLabel.setText(panel.shortTimeFormat.format(randomEvent.spawnedTime));
+		this.setToolTipText(buildToolTip(randomEvent));
 	}
 }
