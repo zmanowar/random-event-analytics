@@ -23,9 +23,16 @@ public interface RandomEventAnalyticsConfig extends Config
 	)
 	String countdownSection = "countdown";
 	@ConfigSection(
+		name = "Logging Panel",
+		description = "Settings related to the logging panel",
+		position = 2,
+		closedByDefault = false
+	)
+	String loggingPanelSection = "loggingPanelSection";
+	@ConfigSection(
 		name = "Experimental",
 		description = "Experimental features. May have a negative impact on performance.",
-		position = 2,
+		position = 3,
 		closedByDefault = true
 	)
 	String experimentalSection = "experimental";
@@ -68,6 +75,17 @@ public interface RandomEventAnalyticsConfig extends Config
 	default boolean enableConfigCountdown()
 	{
 		return true;
+	}
+
+	@ConfigItem(
+		keyName = "logTimeFormat",
+		name = "Time Format",
+		description = "Configures time between 12 or 24 hour time format",
+		section = loggingPanelSection
+	)
+	default TimeFormat timeFormatMode()
+	{
+		return TimeFormat.TIME_24H;
 	}
 
 	@Range(min = 1)

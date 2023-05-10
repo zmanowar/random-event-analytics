@@ -6,6 +6,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -36,6 +37,7 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 	private final JLabel countdownLabel = new JLabel(RandomEventAnalyticsUtil.htmlLabel("Next Event: ", "--:--"));
 	private final JLabel numIntervals = new JLabel();
 	private final JLabel inInstanceIcon = new JLabel("\u26A0");
+	public SimpleDateFormat timeFormat = new SimpleDateFormat("MMM dd, h:mm a");
 	TimeTracking timeTracking;
 	RandomEventAnalyticsPlugin plugin;
 
@@ -100,6 +102,7 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 		eventPanel.setLayout(new BoxLayout(eventPanel, BoxLayout.Y_AXIS));
 		eventPanel.setBorder(new EmptyBorder(10, 0, 0, 0));
 		layoutPanel.add(eventPanel, BorderLayout.SOUTH);
+		updateConfig();
 	}
 
 	private void setupInInstanceIcon()
@@ -153,6 +156,16 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 		spawnTimeProgressBar.setVisible(config.enableEstimation());
 		estimationUntilNext.setVisible(config.enableEstimation());
 		countdownLabel.setVisible(config.enableConfigCountdown());
+		if (config.timeFormatMode() == TimeFormat.TIME_12H) {
+			timeFormat = new SimpleDateFormat("MMM dd, h:mm a");
+		} else {
+			timeFormat = new SimpleDateFormat("MMM dd, HH:mm");
+		}
+
+	}
+
+	public void updateAllRandomEventBoxes() {
+		infoBoxes.forEach(RandomEventRecordBox::update);
 	}
 
 	public void updateEstimation()

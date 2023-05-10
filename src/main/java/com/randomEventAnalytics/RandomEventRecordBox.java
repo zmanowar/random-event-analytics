@@ -19,6 +19,8 @@ public class RandomEventRecordBox extends JPanel
 	private final RandomEventAnalyticsPanel panel;
 	private final RandomEventRecord randomEvent;
 
+	private final JLabel spawnedTimeLabel = new JLabel();
+
 	RandomEventRecordBox(RandomEventAnalyticsPanel panel, RandomEventRecord randomEvent)
 	{
 		this(panel, randomEvent, true);
@@ -58,7 +60,7 @@ public class RandomEventRecordBox extends JPanel
 	private JPanel buildRandomEventPanel(RandomEventRecord record, boolean isConfirmed)
 	{
 		JLabel randomName = new JLabel(record.npcInfoRecord.npcName);
-		JLabel spawnTime = new JLabel(new SimpleDateFormat("MMM dd, h:mm").format(record.spawnedTime));
+		spawnedTimeLabel.setText(panel.timeFormat.format(record.spawnedTime));
 
 		this.setBorder(new EmptyBorder(10, 10, 10, 10));
 		this.setBackground(ColorScheme.DARKER_GRAY_COLOR);
@@ -70,9 +72,9 @@ public class RandomEventRecordBox extends JPanel
 		randomInfo.setBorder(new EmptyBorder(0, 10, 0, 0));
 
 		randomName.setFont(FontManager.getRunescapeBoldFont());
-		spawnTime.setFont(FontManager.getRunescapeSmallFont());
+		spawnedTimeLabel.setFont(FontManager.getRunescapeSmallFont());
 		randomInfo.add(randomName);
-		randomInfo.add(spawnTime);
+		randomInfo.add(spawnedTimeLabel);
 
 		this.add(new JLabel(RandomEventAnalyticsUtil.getNPCIcon(record.npcInfoRecord.npcId)), BorderLayout.WEST);
 		this.add(randomInfo);
@@ -81,6 +83,7 @@ public class RandomEventRecordBox extends JPanel
 		{
 			this.add(buildConfirmationPanel(record));
 		}
+		update();
 		return this;
 	}
 
@@ -109,5 +112,11 @@ public class RandomEventRecordBox extends JPanel
 		confirmationPanel.add(confirm, BorderLayout.WEST);
 		confirmationPanel.add(cancel, BorderLayout.EAST);
 		return confirmationPanel;
+	}
+
+	void update() {
+		// TODO: We'll eventually want to update the rest of the values, but
+		//		for now just the spawned time (when config changed)
+		spawnedTimeLabel.setText(panel.timeFormat.format(randomEvent.spawnedTime));
 	}
 }

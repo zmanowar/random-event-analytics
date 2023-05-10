@@ -11,6 +11,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import javax.inject.Inject;
+import javax.swing.SwingUtilities;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Actor;
@@ -138,6 +139,9 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		}
 
 		panel.updateConfig();
+		if (configChanged.getKey().equals("logTimeFormat")) {
+			SwingUtilities.invokeLater(panel::updateAllRandomEventBoxes);
+		}
 	}
 
 	@Subscribe
