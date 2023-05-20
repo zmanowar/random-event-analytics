@@ -127,7 +127,7 @@ public class RandomEventAnalyticsPluginTest
 
 	private Player getMockedPlayer() {
 		final Player player = mock(Player.class);
-		when(player.getWorldLocation()).thenReturn(new WorldPoint(0, 0, 0));
+		when(player.getWorldLocation()).thenReturn(new WorldPoint(1, 1, 0));
 		when(player.getLocalLocation()).thenReturn(new LocalPoint(0,0));
 		when(player.getCombatLevel()).thenReturn(126);
 		return player;

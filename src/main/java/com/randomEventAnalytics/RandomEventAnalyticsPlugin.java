@@ -49,7 +49,7 @@ import net.runelite.client.util.ImageUtil;
 public class RandomEventAnalyticsPlugin extends Plugin
 {
 	private static final int RANDOM_EVENT_TIMEOUT = 150;
-	private static final int STRANGE_PLANT_SPAWN_RADIUS = 1;
+	private static final int STRANGE_PLANT_SPAWN_RADIUS = 2;
 	private final String PLANT_SPAWNED_NOTIFICATION_MESSAGE =
 		"A Strange Plant has spawned, please visit the Random " + "Event Analytics panel to confirm the random.";
 	@Inject
@@ -280,7 +280,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		if (isStrangePlant(npc.getId()))
 		{
 			Player player = client.getLocalPlayer();
-			if (player.getWorldLocation().distanceTo(npc.getWorldLocation()) == STRANGE_PLANT_SPAWN_RADIUS)
+			if (player.getWorldLocation().distanceTo(npc.getWorldLocation()) <= STRANGE_PLANT_SPAWN_RADIUS)
 			{
 				/**
 				 * Unfortunately we cannot determine if the Strange Plant belongs to the player

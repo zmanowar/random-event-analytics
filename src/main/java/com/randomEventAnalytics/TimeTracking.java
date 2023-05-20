@@ -71,7 +71,7 @@ public class TimeTracking
 		{
 			return -1;
 		}
-		return (int) Duration.between(loginTime, Instant.now()).toMillis() / 1000;
+		return (int) Duration.between(loginTime, Instant.now()).getSeconds();
 	}
 
 	public int getNextRandomEventEstimation()
@@ -83,13 +83,19 @@ public class TimeTracking
 			return SPAWN_INTERVAL_SECONDS;
 		}
 
+		Instant mostRecentInstant = getMostRecentInstant();
+		if (mostRecentInstant == null) {
+			return SPAWN_INTERVAL_SECONDS;
+		}
+
 		if (!hasLoggedInLongEnoughForSpawn())
 		{
 			// Initial login, must wait 5 minutes
 			return SPAWN_INTERVAL_SECONDS - loginTime;
 		}
 
-		int secondsMod = loginTime % SPAWN_INTERVAL_SECONDS;
+		int secondsMod = (int) Duration.between(mostRecentInstant, Instant.now()).getSeconds() % SPAWN_INTERVAL_SECONDS;
+
 		if (secondsMod <= SPAWN_INTERVAL_MARGIN_SECONDS)
 		{
 			// Event should spawn within a 15-second window of 5 minutes.
