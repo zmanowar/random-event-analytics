@@ -26,18 +26,7 @@ public class EvilTwinSolver implements SolverModuleComponent
 	private final Client client;
 	private final EventBus eventBus;
 
-	private static Set<Integer> MOLLY_REAL_NPC_IDS = new HashSet<Integer>(){{
-		add(NpcID.MOLLY_5464);
-		add(NpcID.MOLLY_5474);
-		add(NpcID.MOLLY_5467);
-		add(NpcID.MOLLY_5471);
-		add(NpcID.MOLLY_5476);
-		add(NpcID.MOLLY_5478);
-		add(NpcID.MOLLY_5480);
-		add(NpcID.MOLLY_5485);
-		add(NpcID.MOLLY_5486);
-		add(NpcID.MOLLY_5487);
-	}};
+	private static String MOLLY_NAME = "Molly";
 	private static Integer EVIL_TWIN_MAP_REGION = 7504;
 
 	private Set<Integer> mollyModels;
@@ -67,6 +56,10 @@ public class EvilTwinSolver implements SolverModuleComponent
 	private boolean isEvilTwin(NPC npc)
 	{
 		return getSetFromIntArray(npc.getComposition().getModels()).equals(mollyModels);
+	}
+
+	private boolean isMolly(NPC npc) {
+		return npc.getName() != null && npc.getName().equals(MOLLY_NAME);
 	}
 
 	private Set<Integer> getSetFromIntArray(int[] array)
@@ -99,7 +92,7 @@ public class EvilTwinSolver implements SolverModuleComponent
 		 * but that would require getting the random (or a npc viewer) to
 		 * check for each NPC. Note NPCId seems to have an exhaustive list.
 		 */
-		if (MOLLY_REAL_NPC_IDS.contains(npc.getId()))
+		if (isMolly(npc))
 		{
 			mollyModels = getSetFromIntArray(npc.getComposition().getModels());
 		}
