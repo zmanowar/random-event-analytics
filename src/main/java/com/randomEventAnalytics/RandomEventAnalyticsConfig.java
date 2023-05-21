@@ -5,6 +5,7 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 import net.runelite.client.config.ConfigSection;
+import net.runelite.client.config.Range;
 
 @ConfigGroup(RandomEventAnalyticsConfig.CONFIG_GROUP)
 public interface RandomEventAnalyticsConfig extends Config
@@ -13,26 +14,29 @@ public interface RandomEventAnalyticsConfig extends Config
 	String SECONDS_SINCE_LAST_RANDOM = "secondsSinceLastRandom";
 	String TICKS_SINCE_LAST_RANDOM = "ticksSinceLastRandom";
 	String SECONDS_IN_INSTANCE = "secondsInInstance";
-
-	@ConfigItem(
-		keyName = "enableEstimation",
-		name = "Enable Estimation",
-		description = "Show the Random Events estimation."
+	String LAST_RANDOM_SPAWN_INSTANT = "lastRandomSpawnInstant";
+	String INTERVALS_SINCE_LAST_RANDOM = "intervalsSinceLastRandom";
+	@ConfigSection(
+		name = "Countdown",
+		description = "Logged-in countdown configuration",
+		position = 1,
+		closedByDefault = false
 	)
-	default boolean enableEstimation()
-	{
-		return true;
-	}
-
-	@ConfigItem(
-		keyName = "enableOverlay",
-		name = "Enable Timing Overlay",
-		description = "Show the Random Events overlay. Enable Estimation must be enabled."
+	String countdownSection = "countdown";
+	@ConfigSection(
+		name = "Logging Panel",
+		description = "Settings related to the logging panel",
+		position = 2,
+		closedByDefault = false
 	)
-	default boolean enableOverlay()
-	{
-		return false;
-	}
+	String loggingPanelSection = "loggingPanelSection";
+	@ConfigSection(
+		name = "Experimental",
+		description = "Experimental features. May have a negative impact on performance.",
+		position = 3,
+		closedByDefault = true
+	)
+	String experimentalSection = "experimental";
 
 	@ConfigSection(
 		name = "Random Event Helpers",
@@ -41,6 +45,35 @@ public interface RandomEventAnalyticsConfig extends Config
 		closedByDefault = false
 	)
 	String helperSection = "helpers";
+
+
+//	@ConfigSection(
+//		name = "Notifications",
+//		description = "Notifications for Random Event timing & activity",
+//		position = 0,
+//		closedByDefault = true
+//	)
+//	String notificationSection = "notifications";
+
+	@ConfigItem(
+		keyName = "enableEstimation",
+		name = "Enable Estimation",
+		description = "Shows a 5 minute sliding timer for events."
+	)
+	default boolean enableEstimation()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "enableOverlay",
+		name = "Enable Overlay",
+		description = "Show the Random Events overlay."
+	)
+	default boolean enableOverlay()
+	{
+		return false;
+	}
 
 	@ConfigItem(
 		keyName = "enableHelpers",
@@ -66,15 +99,39 @@ public interface RandomEventAnalyticsConfig extends Config
 	)
 	default Color helperTextColor() {return Color.WHITE;}
 
-
-	@ConfigSection(
-		name = "Experimental",
-		description = "Experimental features. May have a negative impact on performance.",
-		position = 1,
-		closedByDefault = true
+	@ConfigItem(
+		keyName = "enableConfigCountdown",
+		name = "Enable Countdown",
+		description = "Enables the time since last random countdown",
+		section = countdownSection
 	)
-	String experimentalSection = "experimental";
+	default boolean enableConfigCountdown()
+	{
+		return true;
+	}
 
+	@ConfigItem(
+		keyName = "logTimeFormat",
+		name = "Time Format",
+		description = "Configures time between 12 or 24 hour time format",
+		section = loggingPanelSection
+	)
+	default TimeFormat timeFormatMode()
+	{
+		return TimeFormat.TIME_24H;
+	}
+
+	@Range(min = 1)
+	@ConfigItem(
+		keyName = "countdownMinutes",
+		name = "Countdown (Minutes)",
+		description = "Number of minutes the countdown should last",
+		section = countdownSection
+	)
+	default int countdownMinutes()
+	{
+		return 60;
+	}
 
 	@ConfigItem(
 		keyName = "showDebug",

@@ -1,6 +1,5 @@
 package com.randomEventAnalytics;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import javax.inject.Inject;
@@ -11,7 +10,6 @@ import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.OverlayUtil;
 import net.runelite.client.ui.overlay.components.LineComponent;
 import net.runelite.client.ui.overlay.components.PanelComponent;
-import net.runelite.client.ui.overlay.components.TitleComponent;
 
 public class RandomEventAnalyticsOverlay extends Overlay
 {
@@ -20,38 +18,48 @@ public class RandomEventAnalyticsOverlay extends Overlay
 	private static final String TITLE_LABEL = "Random Event";
 	private final RandomEventAnalyticsConfig config;
 	private final PanelComponent panelComponent = new PanelComponent();
-	private final RandomEventAnalyticsTimeTracking timeTracking;
+	private final TimeTracking timeTracking;
+	private final RandomEventAnalyticsPlugin plugin;
 
 	@Inject
 	private RandomEventAnalyticsOverlay(RandomEventAnalyticsConfig config,
-										RandomEventAnalyticsTimeTracking timeTracking)
+										TimeTracking timeTracking, RandomEventAnalyticsPlugin plugin)
 	{
 		setPosition(OverlayPosition.ABOVE_CHATBOX_RIGHT);
 		this.config = config;
 		this.timeTracking = timeTracking;
+		this.plugin = plugin;
 	}
 
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
-		if (!config.enableOverlay() || !config.enableEstimation())
+		if (!config.enableOverlay())
 		{
 			return null;
 		}
 		panelComponent.getChildren().clear();
 
-		int estimatedSeconds = timeTracking.getNextRandomEventEstimation();
+		if (config.enableEstimation())
+		{
+			int closestSpawnTimer = timeTracking.getNextRandomEventEstimation();
+			panelComponent.getChildren().add(LineComponent.builder()
+				.left(timeTracking.hasLoggedInLongEnoughForSpawn() ? "Random Event Eligible In" : "Initial login " +
+					"countdown." +
+					"..")
+				.right(RandomEventAnalyticsUtil.formatSeconds(Math.abs(closestSpawnTimer)))
+				.build());
+		}
 
-		// Build overlay title
-		panelComponent.getChildren().add(TitleComponent.builder()
-			.text(TITLE_LABEL)
-			.color(estimatedSeconds >= 0 ? Color.GREEN : Color.RED)
-			.build());
+		if (config.enableConfigCountdown())
+		{
+			int estimatedSeconds = timeTracking.getCountdownSeconds(config.countdownMinutes());
+			panelComponent.getChildren().add(LineComponent.builder()
+				.left(estimatedSeconds >= 0 ? TIME_UNTIL_LABEL : OVERESTIMATE_LABEL)
+				.right(RandomEventAnalyticsUtil.formatSeconds(Math.abs(estimatedSeconds)))
+				.build());
+		}
 
-		panelComponent.getChildren().add(LineComponent.builder()
-			.left(estimatedSeconds >= 0 ? TIME_UNTIL_LABEL : OVERESTIMATE_LABEL)
-			.right(RandomEventAnalyticsUtil.formatSeconds(Math.abs(estimatedSeconds)))
-			.build());
 
 		if (config.showDebug())
 		{
@@ -61,8 +69,13 @@ public class RandomEventAnalyticsOverlay extends Overlay
 				.build());
 
 			panelComponent.getChildren().add(LineComponent.builder()
-				.left("Instance: ")
-				.right(String.valueOf(timeTracking.getSecondsInInstance()))
+				.left("Intervals: ")
+				.right(String.valueOf(timeTracking.getIntervalsSinceLastRandom()))
+				.build());
+
+			panelComponent.getChildren().add(LineComponent.builder()
+				.left("# of Events Logged: ")
+				.right(String.valueOf(plugin.getNumberOfEventsLogged()))
 				.build());
 		}
 

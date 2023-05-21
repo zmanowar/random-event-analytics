@@ -34,6 +34,8 @@ public class RandomEventAnalyticsLocalStorage
 	private static final Logger log = LoggerFactory.getLogger(RandomEventAnalyticsLocalStorage.class);
 	private File playerFolder;
 	@Getter
+	private int numberOfLoggedEvents = 0;
+	@Getter
 	private String username;
 
 	@Inject
@@ -89,7 +91,19 @@ public class RandomEventAnalyticsLocalStorage
 			log.warn("IOException for file {}: {}", file.getName(), e.getMessage());
 		}
 
+		numberOfLoggedEvents = data.size();
 		return data;
+	}
+
+	public synchronized RandomEventRecord getMostRecentRandom()
+	{
+		final ArrayList<RandomEventRecord> data = loadRandomEventRecords();
+		if (data.size() > 0)
+		{
+			return data.get(data.size() - 1);
+		}
+
+		return null;
 	}
 
 	public synchronized boolean renameUsernameFolderToAccountHash(final String username, final long hash)
@@ -129,6 +143,7 @@ public class RandomEventAnalyticsLocalStorage
 			file.append(dataAsString);
 			file.newLine();
 			file.close();
+			numberOfLoggedEvents += 1;
 			return true;
 		}
 		catch (IOException ioe)

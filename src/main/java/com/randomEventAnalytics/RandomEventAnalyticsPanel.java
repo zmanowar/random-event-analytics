@@ -6,6 +6,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -14,28 +15,36 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
+import lombok.Getter;
 import net.runelite.api.Client;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
+import net.runelite.client.ui.components.ProgressBar;
 import net.runelite.client.util.ImageUtil;
 
 public class RandomEventAnalyticsPanel extends PluginPanel
 {
 	private final ArrayList<RandomEventRecordBox> infoBoxes = new ArrayList<RandomEventRecordBox>();
-
+	private final ProgressBar spawnTimeProgressBar = new ProgressBar();
 	private final JPanel estimationPanel = new JPanel();
+	@Getter
 	private final JComponent eventPanel = new JPanel();
 	private final RandomEventAnalyticsConfig config;
 	private final Client client;
-	private final JLabel estimationUntilNext = new JLabel(RandomEventAnalyticsUtil.htmlLabel("Next Event: ", "--:--"));
+	private final JLabel estimationUntilNext = new JLabel(RandomEventAnalyticsUtil.htmlLabel("Next Event Window: ",
+		"--:--"));
+	private final JLabel countdownLabel = new JLabel(RandomEventAnalyticsUtil.htmlLabel("Next Event: ", "--:--"));
+	private final JLabel numIntervals = new JLabel();
 	private final JLabel inInstanceIcon = new JLabel("\u26A0");
-	RandomEventAnalyticsTimeTracking timeTracking;
+	public SimpleDateFormat shortTimeFormat = new SimpleDateFormat("MMM dd, h:mm a");
+	public SimpleDateFormat longTimeFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+	TimeTracking timeTracking;
 	RandomEventAnalyticsPlugin plugin;
 
 	@Inject
 	RandomEventAnalyticsPanel(RandomEventAnalyticsPlugin plugin, RandomEventAnalyticsConfig config,
-							  RandomEventAnalyticsTimeTracking timeTracking, Client client)
+							  TimeTracking timeTracking, Client client)
 	{
 		super();
 		this.timeTracking = timeTracking;
@@ -57,13 +66,17 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 
 		final JPanel estimationInfo = new JPanel();
 		estimationInfo.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-		estimationInfo.setLayout(new GridLayout(2, 1));
+		estimationInfo.setLayout(new GridLayout(3, 1));
 		estimationInfo.setBorder(new EmptyBorder(0, 10, 0, 0));
 
 		estimationUntilNext.setFont(FontManager.getRunescapeSmallFont());
+		countdownLabel.setFont(FontManager.getRunescapeSmallFont());
+		numIntervals.setFont(FontManager.getRunescapeSmallFont());
 
 		estimationInfo.add(new JLabel("Random Event Estimation"));
 		estimationInfo.add(estimationUntilNext);
+		estimationInfo.add(countdownLabel);
+//		estimationInfo.add(numIntervals);
 
 		estimationPanel.add(new JLabel(new ImageIcon(ImageUtil.loadImageResource(getClass(), "estimation_icon.png"))),
 			BorderLayout.WEST);
@@ -71,11 +84,26 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 		estimationPanel.add(estimationInfo);
 		setupInInstanceIcon();
 		estimationPanel.add(inInstanceIcon, BorderLayout.EAST);
+
+		JPanel progressWrapper = new JPanel();
+		progressWrapper.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+		// https://github.com/runelite/runelite/blob/master/runelite-client/src/main/java/net/runelite/client/plugins/xptracker/XpInfoBox.java#L277
+		progressWrapper.setBorder(new EmptyBorder(10, 0, 0, 0));
+		progressWrapper.setLayout(new BorderLayout());
+
+		spawnTimeProgressBar.setMaximumValue(TimeTracking.SPAWN_INTERVAL_SECONDS);
+		spawnTimeProgressBar.setBackground(ColorScheme.DARK_GRAY_COLOR);
+		spawnTimeProgressBar.setForeground(ColorScheme.PROGRESS_COMPLETE_COLOR);
+		progressWrapper.add(spawnTimeProgressBar);
+
+		estimationPanel.add(progressWrapper, BorderLayout.SOUTH);
+
 		layoutPanel.add(estimationPanel);
 
 		eventPanel.setLayout(new BoxLayout(eventPanel, BoxLayout.Y_AXIS));
 		eventPanel.setBorder(new EmptyBorder(10, 0, 0, 0));
 		layoutPanel.add(eventPanel, BorderLayout.SOUTH);
+		updateConfig();
 	}
 
 	private void setupInInstanceIcon()
@@ -83,7 +111,8 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 		inInstanceIcon.setVisible(false);
 		inInstanceIcon.setFont(new Font(Font.DIALOG, Font.PLAIN, 12));
 		inInstanceIcon.setForeground(Color.RED);
-		inInstanceIcon.setToolTipText("You are currently in an instance where random events cannot spawn.");
+		// Technically they can spawn in houses (I wonder what other instances.)
+		inInstanceIcon.setToolTipText("You are currently in an instance where random events may not spawn.");
 	}
 
 	public void eventRecordBoxUpdated(RandomEventRecordBox randomEventRecordBox, boolean isConfirmed)
@@ -125,21 +154,42 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 
 	public void updateConfig()
 	{
-		estimationPanel.setVisible(config.enableEstimation());
+		spawnTimeProgressBar.setVisible(config.enableEstimation());
+		estimationUntilNext.setVisible(config.enableEstimation());
+		countdownLabel.setVisible(config.enableConfigCountdown());
+		if (config.timeFormatMode() == TimeFormat.TIME_12H) {
+			shortTimeFormat = new SimpleDateFormat("MMM dd, h:mm a");
+			longTimeFormat = new SimpleDateFormat("yyyy-MM-dd h:mm:ss a");
+		} else {
+			shortTimeFormat = new SimpleDateFormat("MMM dd, HH:mm");
+			longTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		}
+
+	}
+
+	public void updateAllRandomEventBoxes() {
+		infoBoxes.forEach(RandomEventRecordBox::update);
 	}
 
 	public void updateEstimation()
 	{
-		if (!config.enableEstimation())
+		if (!config.enableEstimation() && !config.enableConfigCountdown())
 		{
 			return;
 		}
+
+		spawnTimeProgressBar.setValue(Math.abs(TimeTracking.SPAWN_INTERVAL_SECONDS - timeTracking.getNextRandomEventEstimation()));
+//		spawnTimeProgressBar.setCenterLabel(timeTracking.getProbabilityForNextWindow() * 100 + "% Chance This Interval");
+//		numIntervals.setText(String.valueOf(timeTracking.getIntervalsSinceLastRandom()));
+
 		SwingUtilities.invokeLater(() -> {
 			int estimatedSeconds = timeTracking.getNextRandomEventEstimation();
 			inInstanceIcon.setVisible(client.isInInstancedRegion());
-			String label = estimatedSeconds >= 0 ? "Next Event: " : "Overestimate: ";
-			estimationUntilNext.setText(RandomEventAnalyticsUtil.htmlLabel(label,
+			estimationUntilNext.setText(RandomEventAnalyticsUtil.htmlLabel("Next Event Window: ",
 				RandomEventAnalyticsUtil.formatSeconds(Math.abs(estimatedSeconds))));
+			estimationUntilNext.setToolTipText("Intervals: " + timeTracking.getIntervalsSinceLastRandom());
+			countdownLabel.setText(RandomEventAnalyticsUtil.htmlLabel("Next Event: ",
+				RandomEventAnalyticsUtil.formatSeconds(Math.abs(timeTracking.getCountdownSeconds(config.countdownMinutes())))));
 		});
 	}
 }
