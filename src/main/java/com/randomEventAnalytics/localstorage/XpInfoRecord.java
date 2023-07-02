@@ -32,10 +32,6 @@ public class XpInfoRecord
 
 		for (Skill skill : Skill.values())
 		{
-			if (skill.equals(Skill.OVERALL))
-			{
-				continue;
-			}
 			xpPerSkill.put(skill.getName(), client.getSkillExperience(skill));
 			newSkillActionsHr = xpTrackerService.getActionsHr(skill);
 			newSkillXpHr = xpTrackerService.getXpHr(skill);
@@ -50,9 +46,10 @@ public class XpInfoRecord
 				maximumXpHr = newSkillXpHr;
 			}
 		}
+		// TODO: Poll & Remove/consolidate most of the XP tracking as it's unnecessary.
 		return new XpInfoRecord(
-			xpTrackerService.getActionsHr(Skill.OVERALL),
-			xpTrackerService.getXpHr(Skill.OVERALL),
+			0, // deprecated overall
+			0,  // deprecated overall
 			maximumActionsHrSkill.getName(),
 			maximumActionsHr,
 			maximumXpHrSkill.getName(),
