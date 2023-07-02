@@ -38,13 +38,14 @@ public class SolverOverlay extends Overlay
 	private final SurpriseExamSolver surpriseExamSolver;
 	private final CaptArnavSolver captArnavSolver;
 	private final BeekeeperSolver beekeeperSolver;
+	private final CerterSolver certerSolver;
 
 	@Inject
 	SolverOverlay(Client client, RandomEventAnalyticsConfig config, EvilBobSolver evilBobSolver,
 				  EvilTwinSolver evilTwinSolver, MimeSolver mimeSolver, PinballSolver pinballSolver,
 				  SandwichLadySolver sandwichLadySolver, FreakyForesterSolver freakyForesterSolver,
 				  PrisonPeteSolver prisonPeteSolver, QuizMasterSolver quizMasterSolver, MazeSolver mazeSolver,
-				  GravediggerSolver gravediggerSolver, DrillDemonSolver drillDemonSolver, SurpriseExamSolver surpriseExamSolver, CaptArnavSolver captArnavSolver, BeekeeperSolver beekeeperSolver) {
+				  GravediggerSolver gravediggerSolver, DrillDemonSolver drillDemonSolver, SurpriseExamSolver surpriseExamSolver, CaptArnavSolver captArnavSolver, BeekeeperSolver beekeeperSolver, CerterSolver certerSolver) {
 		this.client = client;
 		this.config = config;
 		this.evilBobSolver = evilBobSolver;
@@ -61,6 +62,7 @@ public class SolverOverlay extends Overlay
 		this.surpriseExamSolver = surpriseExamSolver;
 		this.captArnavSolver = captArnavSolver;
 		this.beekeeperSolver = beekeeperSolver;
+		this.certerSolver = certerSolver;
 
 		setPosition(OverlayPosition.DYNAMIC);
 		setLayer(OverlayLayer.ABOVE_WIDGETS);
@@ -136,6 +138,9 @@ public class SolverOverlay extends Overlay
 			{
 				highlightWidget(graphics, widget);
 			}
+		}
+		if (certerSolver.isEnabled()) {
+			highlightWidget(graphics, certerSolver.getCorrectAnswerWidget());
 		}
 		return null;
 	}

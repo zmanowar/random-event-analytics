@@ -46,7 +46,7 @@ public enum ExamItemModel {
 	SWORD(41150, ExamItemType.MELEE), // Sword
 	BATTLE_AXE(41176, ExamItemType.MELEE), // Battle-axe
 	SCIMITAR(41192, ExamItemType.MELEE), // Scimitar
-	// These shields may also be MELEE and MINING
+	// These shields may also be MELEE and MINING, though I haven't seen them in that group yet.
 	KITE_SHIELD(41200, ExamItemType.SHIELD), // Kite shield
 	SQUARE_SHIELD_1(41169, ExamItemType.SHIELD), // Square shield
 	SQUARE_SHIELD_2(41188, ExamItemType.SHIELD), // Square shield with sword on it?

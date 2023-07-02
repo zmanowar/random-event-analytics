@@ -52,3 +52,4 @@ public class SolverItemOverlay extends WidgetItemOverlay
 		textComponent.render(graphics);
 	}
 }
+

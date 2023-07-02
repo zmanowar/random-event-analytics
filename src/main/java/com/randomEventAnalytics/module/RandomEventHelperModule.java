@@ -4,6 +4,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.multibindings.Multibinder;
 import com.randomEventAnalytics.helpers.BeekeeperSolver;
 import com.randomEventAnalytics.helpers.CaptArnavSolver;
+import com.randomEventAnalytics.helpers.CerterSolver;
 import com.randomEventAnalytics.helpers.DrillDemonSolver;
 import com.randomEventAnalytics.helpers.EvilBobSolver;
 import com.randomEventAnalytics.helpers.EvilTwinSolver;
@@ -37,6 +38,7 @@ public class RandomEventHelperModule extends AbstractModule
 		lifecycleComponents.addBinding().to(SurpriseExamSolver.class);
 		lifecycleComponents.addBinding().to(CaptArnavSolver.class);
 		lifecycleComponents.addBinding().to(BeekeeperSolver.class);
+		lifecycleComponents.addBinding().to(CerterSolver.class);
 		lifecycleComponents.addBinding().to(SolverOverlayManager.class);
 
 	}
