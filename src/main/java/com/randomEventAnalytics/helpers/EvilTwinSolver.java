@@ -58,7 +58,8 @@ public class EvilTwinSolver implements SolverModuleComponent
 		return getSetFromIntArray(npc.getComposition().getModels()).equals(mollyModels);
 	}
 
-	private boolean isMolly(NPC npc) {
+	private boolean isMolly(NPC npc)
+	{
 		return npc.getName() != null && npc.getName().equals(MOLLY_NAME);
 	}
 
@@ -68,10 +69,12 @@ public class EvilTwinSolver implements SolverModuleComponent
 	}
 
 	@Subscribe
-	public void onNpcDespawned(NpcDespawned event) {
+	public void onNpcDespawned(NpcDespawned event)
+	{
 		if (!isEnabled()) return;
 
-		if (event.getNpc() == evilTwin) {
+		if (event.getNpc() == evilTwin)
+		{
 			mollyModels = null;
 			evilTwin = null;
 		}

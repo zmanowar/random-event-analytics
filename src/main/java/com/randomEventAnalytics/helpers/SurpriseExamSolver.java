@@ -1,9 +1,13 @@
 package com.randomEventAnalytics.helpers;
 
+import com.randomEventAnalytics.helpers.examHelper.ExamItemModel;
+import com.randomEventAnalytics.helpers.examHelper.ExamItemType;
 import com.randomEventAnalytics.module.SolverModuleComponent;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -53,95 +57,11 @@ public class SurpriseExamSolver implements SolverModuleComponent
 		put(Pattern.compile("burn|igniting|light my fire"), ExamItemType.FIREMAKING);
 		put(Pattern.compile("shiny|accessories|bangle"), ExamItemType.JEWELRY);
 		put(Pattern.compile("ranged|arrow|hate melee"), ExamItemType.RANGED);
+		put(Pattern.compile("headgear|tip my hat|mess up your hairstyle"), ExamItemType.HAT);
 		put(Pattern.compile("warriors|hand-to-hand"), ExamItemType.MELEE); // TODO: Fill this out, missing one
 		put(Pattern.compile("fish|sea food"), ExamItemType.FISHING); // TODO: Check "fish" doesn't appear in other patterns
 	}};
-	private static final HashMap<Integer, ExamItemType> WIDGET_MODEL_ID_TO_ITEM_TYPE = new HashMap<Integer,
-		ExamItemType>()
-	{{
-		put(41154, ExamItemType.FIREMAKING); // Tinderbox
-		put(41232, ExamItemType.FIREMAKING); // Logs
-		put(41229, ExamItemType.FIREMAKING); // Lantern
-		put(41184, ExamItemType.FIREMAKING); // Axe
-		put(27102, ExamItemType.FIREMAKING); // Candlestick
-		put(41147, ExamItemType.FISHING); // Shrimp
-		put(41173, ExamItemType.FISHING); // Sardine?
-		put(41158, ExamItemType.FISHING); // Harpoon
-		put(41163, ExamItemType.FISHING); // Pike?
-		put(41217, ExamItemType.FISHING); // Trout
-		put(41193, ExamItemType.FISHING); // Bass?
-		put(41209, ExamItemType.FISHING); // Tuna
-		put(41206, ExamItemType.FISHING); // Pike?
-		put(41166, ExamItemType.FISHING); // Shark
-		put(41204, ExamItemType.FISHING); // Salmon?
-		put(41202, ExamItemType.COOKING); // Cake
-		put(41203, ExamItemType.COOKING); // Chefs Hat
-		put(41190, ExamItemType.COOKING); // Apron
-		put(41172, ExamItemType.COOKING); // Bread
-		put(41205, ExamItemType.COOKING); // Pie
-		put(41171, ExamItemType.RANGED); // Bow
-		put(27097, ExamItemType.DRINK); // Gnome cocktail of some sort
-		put(28421, ExamItemType.DRINK); // Gnome cocktail of some sort
-		put(41162, ExamItemType.DRINK); // Tea
-		put(41219, ExamItemType.DRINK); // Whiskey
-		put(41152, ExamItemType.DRINK); // Beer
-		put(41170, ExamItemType.MINING); // Copper ore?
-		put(27094, ExamItemType.MINING); // Platebody
-		put(41153, ExamItemType.MINING); // Ingot
-		put(41194, ExamItemType.MINING); // Pickaxe
-		put(41183, ExamItemType.MINING); // Hammer
-		put(41150, ExamItemType.MELEE); // Sword
-		put(41176, ExamItemType.MELEE); // Battle-axe
-		put(41192, ExamItemType.MELEE); // Scimitar
-		put(41200, ExamItemType.SHIELD); // Kite shield
-		put(41169, ExamItemType.SHIELD); // Square shield
-		put(41188, ExamItemType.SHIELD); // Square shield with sword on it?
-		put(41221, ExamItemType.SHIELD); // Round shield
-		put(41198, ExamItemType.RANGED); // Bow 2
-		put(41222, ExamItemType.FRUIT); // Banana
-		put(41230, ExamItemType.FRUIT); // Strawberry
-		put(41207, ExamItemType.FRUIT); // Redberry
-		put(41214, ExamItemType.FRUIT); // Pineapple
-		put(41177, ExamItemType.RANGED); // Arrows
-		put(41146, ExamItemType.RANGED); // Crossbow
-		put(41208, ExamItemType.FARMING); // Plant pot?
-		put(41197, ExamItemType.FARMING); // Secateurs
-		put(41212, ExamItemType.FARMING); // Rake
-		put(41213, ExamItemType.FARMING); // Watering can
-		put(41210, ExamItemType.FARMING); // Trowel
-		put(41155, ExamItemType.FARMING); // Spade
-		put(41195, ExamItemType.HAT); // Mask
-		put(41196, ExamItemType.HAT); // Jester hat
-		put(41187, ExamItemType.HAT); // Pirate hat
-		put(41164, ExamItemType.HAT); // Lederhosen hat
-		put(41168, ExamItemType.MAGIC); // Air rune
-		put(41231, ExamItemType.MAGIC); // Water rune
-		put(41215, ExamItemType.MAGIC); // Fire rune
-		put(41157, ExamItemType.MAGIC); // Earth rune
-		put(41174, ExamItemType.MAGIC); // Magic staff
-		put(41189, ExamItemType.ARMOR); // Med helm
-		put(27091, ExamItemType.JEWELRY); // Ring
-		put(41216, ExamItemType.JEWELRY); // Necklace
-		put(41151, ExamItemType.JEWELRY); // Gemstone?
-		put(41159, ExamItemType.JEWELRY); // Holy symbol
-		put(41199, ExamItemType.OTHER); // Small knife?
-		put(41161, ExamItemType.OTHER); // Cheese
-		put(2674, ExamItemType.OTHER); // Bones
-		put(41223, ExamItemType.OTHER); // Pot
-		put(41182, ExamItemType.OTHER); // Pure essence? TODO: Check this, may be a rune?
-		put(41175, ExamItemType.OTHER); // Dye?
-		put(29232, ExamItemType.OTHER); // Key
-		put(41226, ExamItemType.OTHER); // Garlic/Onion
-		put(41220, ExamItemType.OTHER); // Ranger boots
-		put(27104, ExamItemType.OTHER); // Insulated boots?
-		put(41160, ExamItemType.OTHER); // Fighting boots
-		put(41225, ExamItemType.OTHER); // Jug
-		put(41227, ExamItemType.OTHER); // Shears
-		put(27101, ExamItemType.OTHER); // Frog mask
-		put(41167, ExamItemType.OTHER); // Legends cape
-		put(979, ExamItemType.OTHER); // (Cocktail) Shaker
-		put(41181, ExamItemType.OTHER);
-	}};
+
 	@Getter
 	private HashSet<Widget> matchThreeAnswerWidgets = new HashSet<>();
 	@Getter
@@ -172,10 +92,10 @@ public class SurpriseExamSolver implements SolverModuleComponent
 			{
 				continue;
 			}
-			ExamItemType itemType = getExamItemTypeFromWidget(widget);
-			if (itemType == null) continue;
+			ExamItemModel itemModel = getExamItemModelFromWidget(widget);
+			if (itemModel == null) continue;
 
-			if (itemType == examItemType)
+			if (itemModel.isType(examItemType))
 			{
 				matchThreeAnswerWidgets.add(widget);
 			}
@@ -188,7 +108,7 @@ public class SurpriseExamSolver implements SolverModuleComponent
 			In case there are unexpected items, and we need to filter multiple item types,
 			we'll add the item types to list and find the mode (most occurring item type)
 		 */
-		ExamItemType[] itemTypes = new ExamItemType[]{ExamItemType.NONE, ExamItemType.NONE, ExamItemType.NONE};
+		List<ExamItemType> itemTypes = new ArrayList<>();
 		for (int i = 0; i < NUM_WHAT_NEXT_HINT_ITEMS; i++)
 		{
 			Widget widget = client.getWidget(WHAT_NEXT_WIDGET_GROUP_ID, WHAT_NEXT_HINT_WIDGET_START_CHILD_ID + i);
@@ -196,11 +116,11 @@ public class SurpriseExamSolver implements SolverModuleComponent
 			{
 				continue;
 			}
-			ExamItemType itemType = getExamItemTypeFromWidget(widget);
-			if (itemType == null) continue;
-			itemTypes[i] = itemType;
+			ExamItemModel itemModel = getExamItemModelFromWidget(widget);
+			if (itemModel == null) continue;
+			itemTypes.addAll(itemModel.getExamItemTypes());
 		}
-		return Arrays.stream(itemTypes).collect(Collectors.groupingBy(Function.identity(), Collectors.counting())).entrySet().stream().max(Map.Entry.comparingByValue()).map(Map.Entry::getKey).orElse(null);
+		return itemTypes.stream().collect(Collectors.groupingBy(Function.identity(), Collectors.counting())).entrySet().stream().max(Map.Entry.comparingByValue()).map(Map.Entry::getKey).orElse(null);
 	}
 
 	private void setWhatNextAnswerWidget(ExamItemType examItemType) {
@@ -211,23 +131,24 @@ public class SurpriseExamSolver implements SolverModuleComponent
 		for (int i = 0; i <= NUM_WHAT_NEXT_ANSWER_ITEMS * 2; i++) {
 			Widget widget = client.getWidget(WHAT_NEXT_WIDGET_GROUP_ID, WHAT_NEXT_ANSWER_WIDGET_START_CHILD_ID + i);
 			if (widget == null) continue;
-			ExamItemType itemType = getExamItemTypeFromWidget(widget);
-			if (itemType == null) continue;
-			if (itemType == examItemType) {
+			ExamItemModel itemModel = getExamItemModelFromWidget(widget);
+			if (itemModel == null) continue;
+			if (itemModel.isType(examItemType))
+			{
 				whatNextAnswerWidget = widget;
 				return;
 			}
 		}
 	}
 
-	private ExamItemType getExamItemTypeFromWidget(Widget widget) {
+	private ExamItemModel getExamItemModelFromWidget(Widget widget) {
 		int modelId = widget.getModelId();
 		if (modelId == -1) return null;
 
-		ExamItemType itemType = WIDGET_MODEL_ID_TO_ITEM_TYPE.get(modelId);
-		if (itemType == null) log.debug("{} not set in item type", modelId);
+		ExamItemModel itemModel = ExamItemModel.getExamItemModel(modelId);
+		if (itemModel == null) log.debug("{} not set in item model", modelId);
 
-		return itemType;
+		return itemModel;
 	}
 
 	@Subscribe
@@ -309,9 +230,9 @@ public class SurpriseExamSolver implements SolverModuleComponent
 		eventBus.unregister(this);
 	}
 
-	enum ExamItemType
-	{
-		DRINK, FIREMAKING, FISHING, RANGED, MINING, MELEE, FARMING, OTHER, FRUIT, HAT, MAGIC, ARMOR, JEWELRY, SHIELD, COOKING, NONE
-	}
 
+	/**
+	 * 8836: Sword (longsword?)
+	 * 8837: Spade
+	 */
 }

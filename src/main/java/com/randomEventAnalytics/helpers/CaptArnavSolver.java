@@ -11,7 +11,10 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
+import net.runelite.api.NpcID;
 import net.runelite.api.events.GameTick;
+import net.runelite.api.events.NpcDespawned;
+import net.runelite.api.events.WidgetClosed;
 import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.eventbus.EventBus;
@@ -95,16 +98,27 @@ public class CaptArnavSolver implements SolverModuleComponent
 	@Subscribe
 	public void onWidgetLoaded(WidgetLoaded event)
 	{
-		if (!isEnabled())
-		{
-			return;
-		}
 		if (event.getGroupId() == ARNAV_WIDGET_GROUP_ID)
 		{
 			arnavWidgetLoaded = true;
 		}
 	}
 
+	@Subscribe
+	public void onWidgetClosed(WidgetClosed event) {
+		if (!isEnabled()) {
+			return;
+		}
+
+		if (event.getGroupId() == ARNAV_WIDGET_GROUP_ID) {
+			arnavWidgetLoaded = false;
+		}
+	}
+
+	@Override
+	public boolean isEnabled() {
+		return arnavWidgetLoaded;
+	}
 
 	@Override
 	public void startUp()

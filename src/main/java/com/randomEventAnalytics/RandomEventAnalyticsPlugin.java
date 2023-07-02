@@ -55,7 +55,7 @@ import net.runelite.client.util.ImageUtil;
 public class RandomEventAnalyticsPlugin extends Plugin
 {
 	private static final int RANDOM_EVENT_TIMEOUT = 150;
-	private static final int STRANGE_PLANT_SPAWN_RADIUS = 2;
+	private static final int STRANGE_PLANT_SPAWN_RADIUS = 1;
 	private final String PLANT_SPAWNED_NOTIFICATION_MESSAGE =
 		"A Strange Plant has spawned, please visit the Random " + "Event Analytics panel to confirm the random.";
 	@Inject
@@ -304,6 +304,14 @@ public class RandomEventAnalyticsPlugin extends Plugin
 			Player player = client.getLocalPlayer();
 			if (player.getWorldLocation().distanceTo(npc.getWorldLocation()) <= STRANGE_PLANT_SPAWN_RADIUS)
 			{
+				/**
+				 * TODO: We could check (timeTracking.getSecondsSinceLogin % (5*60) == 0) or [...] <= 5 (some arbitrary constant)
+				 * 	to determine if we're actually eligible for a plant.
+				 *  We may want to check/notify if any random has spawned outside of an exact 5 minute interval.
+				 *
+				 *  Also check for "It's not here for you." in chat.
+ 				 */
+
 				/**
 				 * Unfortunately we cannot determine if the Strange Plant belongs to the player
 				 * (See onInteractingChange)

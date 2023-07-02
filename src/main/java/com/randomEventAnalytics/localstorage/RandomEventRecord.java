@@ -18,7 +18,7 @@ public class RandomEventRecord
 	public final PlayerInfoRecord playerInfoRecord;
 	public final XpInfoRecord xpInfoRecord;
 	private final int secondsInInstance;
-
+ 
 	public RandomEventRecord(long spawnedTime, TimeTracking timeTracking,
 							 NpcInfoRecord npcInfoRecord, PlayerInfoRecord playerInfoRecord, XpInfoRecord xpInfoRecord)
 	{

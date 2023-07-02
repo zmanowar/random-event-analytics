@@ -42,18 +42,10 @@ public interface RandomEventAnalyticsConfig extends Config
 		name = "Random Event Helpers",
 		description = "Configuration items for random event helpers",
 		position = 0,
-		closedByDefault = false
+		closedByDefault = true
 	)
 	String helperSection = "helpers";
 
-
-//	@ConfigSection(
-//		name = "Notifications",
-//		description = "Notifications for Random Event timing & activity",
-//		position = 0,
-//		closedByDefault = true
-//	)
-//	String notificationSection = "notifications";
 
 	@ConfigItem(
 		keyName = "enableEstimation",
@@ -81,7 +73,7 @@ public interface RandomEventAnalyticsConfig extends Config
 		description = "Highlights the correct answers for some random events",
 		section = helperSection
 	)
-	default boolean enableHelpers() {return true;}
+	default boolean enableHelpers() {return false;}
 
 	@ConfigItem(
 		keyName = "helperHighlightColor",
