@@ -23,7 +23,7 @@ public class CerterSolver implements SolverModuleComponent
 	private final Client client;
 	private final EventBus eventBus;
 
-	private static final int CERTER_WIDGET_GROUP_ID = 26;
+	private static final int CERTER_WIDGET_GROUP_ID = 184;
 	private static final int CERTER_MODEL_WIDGET_CHILD_ID = 7;
 	private static final int[] CERTER_ANSWER_WIDGET_CHILD_IDS = new int[]{1, 2, 3};
 	private boolean certerWidgetLoaded = false;
@@ -36,7 +36,7 @@ public class CerterSolver implements SolverModuleComponent
 		put(8832, "shield"); // untested (kite shield)
 		put(8833, "helmet"); // untested (med helm)
 		put(8834, "ring"); // untested (gemmed ring)
-		put(8835, "secateurs"); // untested (secateurs)
+		put(8835, "shears"); // untested (shears)
 		put(8836, "sword"); // untested (sword)
 		put(8837, "spade"); // untested (spade)
 	}};

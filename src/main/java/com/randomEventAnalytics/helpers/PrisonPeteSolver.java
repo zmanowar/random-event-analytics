@@ -34,7 +34,7 @@ public class PrisonPeteSolver implements SolverModuleComponent
 	private static final Integer BALLOON_ANIMAL_WIDGET_CHILD_ID = 4;
 	private static final HashMap<Integer, Integer> BALLOON_ANIMAL_MODEL_TO_NPC_ID = new HashMap<Integer, Integer>() {{
 		put(10751, 369); // Big no horns
-		put(11028, 370); //  370: thin dog with ball on tail
+		put(11028, 5488); //  370: thin dog with ball on tail
 		put(11034, 5492); // 5492: Ram
 		put(10750, 5489);
 	}};
