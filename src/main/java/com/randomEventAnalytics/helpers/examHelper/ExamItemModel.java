@@ -45,6 +45,7 @@ public enum ExamItemModel {
 	PICKAXE_2(41149, ExamItemType.MINING), // Pickaxe
 	SWORD(41150, ExamItemType.MELEE), // Sword
 	BATTLE_AXE(41176, ExamItemType.MELEE), // Battle-axe
+	MACE(41211, ExamItemType.MELEE), // (Steel) Mace
 	SCIMITAR(41192, ExamItemType.MELEE), // Scimitar
 	// These shields may also be MELEE and MINING, though I haven't seen them in that group yet.
 	KITE_SHIELD(41200, ExamItemType.SHIELD), // Kite shield

@@ -51,7 +51,8 @@ public class MazeSolver implements SolverModuleComponent
 
 	@Override
 	public boolean isEnabled() {
-		return client.isInInstancedRegion() && ArrayUtils.contains(client.getMapRegions(), MAZE_MAP_REGION);
+		return false; // Disabling for now, need to limit the render / find distance & implement static path finding.
+//		return client.isInInstancedRegion() && ArrayUtils.contains(client.getMapRegions(), MAZE_MAP_REGION);
 	}
 
 	private void setDoors() {
