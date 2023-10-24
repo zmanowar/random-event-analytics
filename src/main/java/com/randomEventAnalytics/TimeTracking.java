@@ -21,6 +21,7 @@ public class TimeTracking
 	public static final int SPAWN_INTERVAL_SECONDS = 60 * 5;
 	private static final int SPAWN_INTERVAL_MARGIN_SECONDS = 0;
 	private static final int SPAWN_INTERVAL_TIMEFRAME_SECONDS = 15;
+	public static final int SECONDS_IN_AN_HOUR = 60 /*seconds in a minute*/ * 60 /*minutes in an hour*/;
 
 	private int sessionTicks;
 
@@ -101,24 +102,33 @@ public class TimeTracking
 		return SPAWN_INTERVAL_SECONDS - secondsMod;
 	}
 
+	private boolean isInsideRandomEventWindow()
+	{
+		int loginTime = getSecondsSinceLogin();
+		int secondsMod = loginTime % SPAWN_INTERVAL_SECONDS;
+		// If we're within 15 seconds of an event window, it's considered a possible time.
+		return secondsMod <= SPAWN_INTERVAL_TIMEFRAME_SECONDS || secondsMod >= SPAWN_INTERVAL_SECONDS - SPAWN_INTERVAL_TIMEFRAME_SECONDS;
+	}
+
 	public boolean isPossibleTimeForRandomEvent()
 	{
+		if (lastRandomSpawnInstant == null)
+		{
+			return isInsideRandomEventWindow();
+		}
+
 		if (!hasLoggedInLongEnoughForSpawn())
 		{
 			return false;
 		}
 
-		int secondsInAnHour = 60 /*seconds in a minute*/ * 60 /*minutes in an hour*/;
-		if (getTotalSecondsSinceLastRandomEvent() <  secondsInAnHour)
+		if (getTotalSecondsSinceLastRandomEvent() <  SECONDS_IN_AN_HOUR)
 		{
 			// There's a minimum of an hour between random events.
 			return false;
 		}
 
-		int loginTime = getSecondsSinceLogin();
-		int secondsMod = loginTime % SPAWN_INTERVAL_SECONDS;
-		// If we're within 15 seconds of an event window, it's considered a possible time.
-		return secondsMod <= SPAWN_INTERVAL_TIMEFRAME_SECONDS || secondsMod >= SPAWN_INTERVAL_SECONDS - SPAWN_INTERVAL_TIMEFRAME_SECONDS;
+		return isInsideRandomEventWindow();
 	}
 
 	public void setRandomEventSpawned()
