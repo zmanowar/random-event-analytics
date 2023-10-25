@@ -277,23 +277,30 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	public void onNpcSpawned(final NpcSpawned event)
 	{
 		final NPC npc = event.getNpc();
-		if (isStrangePlant(npc.getId()))
+		if (!isStrangePlant(npc.getId()))
 		{
-			Player player = client.getLocalPlayer();
-			if (player.getWorldLocation().distanceTo(npc.getWorldLocation()) == STRANGE_PLANT_SPAWN_RADIUS)
-			{
-				/**
-				 * Unfortunately we cannot determine if the Strange Plant belongs to the player
-				 * (See onInteractingChange)
-				 * So we need to add an unconfirmed record (UI only) that allows the player to
-				 * confirm if the plant belongs to them. Only then will it update the records.
-				 */
-				RandomEventRecord record = createRandomEventRecord(npc);
-				panel.addUnconfirmedRandom(record);
-				chatMessageManager.queue(QueuedMessage.builder().type(ChatMessageType.CONSOLE).runeLiteFormattedMessage(PLANT_SPAWNED_NOTIFICATION_MESSAGE).build());
-				notifier.notify(PLANT_SPAWNED_NOTIFICATION_MESSAGE);
-			}
+			return;
 		}
+		Player player = client.getLocalPlayer();
+		if (player.getWorldLocation().distanceTo(npc.getWorldLocation()) != STRANGE_PLANT_SPAWN_RADIUS)
+		{
+			return;
+		}
+		if (!timeTracking.isPossibleTimeForRandomEvent())
+		{
+			// We only want to notify about strange plants when it's possibly the user's random
+			return;
+		}
+		/**
+		 * Unfortunately we cannot determine if the Strange Plant belongs to the player
+		 * (See onInteractingChange)
+		 * So we need to add an unconfirmed record (UI only) that allows the player to
+		 * confirm if the plant belongs to them. Only then will it update the records.
+		 */
+		RandomEventRecord record = createRandomEventRecord(npc);
+		panel.addUnconfirmedRandom(record);
+		chatMessageManager.queue(QueuedMessage.builder().type(ChatMessageType.CONSOLE).runeLiteFormattedMessage(PLANT_SPAWNED_NOTIFICATION_MESSAGE).build());
+		notifier.notify(PLANT_SPAWNED_NOTIFICATION_MESSAGE);
 	}
 
 	@Subscribe
