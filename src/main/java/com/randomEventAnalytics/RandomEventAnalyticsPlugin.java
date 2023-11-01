@@ -50,8 +50,8 @@ public class RandomEventAnalyticsPlugin extends Plugin
 {
 	private static final int RANDOM_EVENT_TIMEOUT = 150;
 	private static final int STRANGE_PLANT_SPAWN_RADIUS = 1;
-	private final String PLANT_SPAWNED_NOTIFICATION_MESSAGE =
-		"A Strange Plant has spawned, please visit the Random " + "Event Analytics panel to confirm the random.";
+	private static final String PLANT_SPAWNED_NOTIFICATION_MESSAGE =
+		"A Strange Plant has spawned, please visit the Random Event Analytics panel to confirm the random.";
 	@Inject
 	private ConfigManager configManager;
 	@Inject
