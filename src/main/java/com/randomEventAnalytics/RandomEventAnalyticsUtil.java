@@ -198,11 +198,11 @@ public class RandomEventAnalyticsUtil
 			NpcIdWrapper countCheck = new NpcIdWrapper(
 				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/count_check" +
 					".png")),
-				false, // TODO: Unsure if he is available in wildy, does he teleport?
+				false, // TODO: Unsure if he is available in wilderness, but this flag is currently unused.
 				true
 			);
-			put(12551, countCheck); // TODO: Convert these to NpcId.COUNT_CHECK_12551, COUNT_CHECK_12552
-			put(12552, countCheck);
+			put(NpcID.COUNT_CHECK_12551, countCheck);
+			put(NpcID.COUNT_CHECK_12552, countCheck);
 		}
 	};
 	static final DecimalFormat TWO_DECIMAL_FORMAT = new DecimalFormat("0.00");

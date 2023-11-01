@@ -1,11 +1,14 @@
 package com.randomEventAnalytics;
 
 
+import com.google.inject.Guice;
 import com.google.inject.testing.fieldbinder.Bind;
+import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.randomEventAnalytics.localstorage.RandomEventRecord;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import javax.inject.Inject;
 import net.runelite.client.config.ConfigManager;
 import org.junit.Assert;
 import org.junit.Before;
@@ -20,12 +23,16 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class TimeTrackingTest
 {
 
+	@Inject
+	private TimeTracking timeTracking;
+
 	@Mock
 	@Bind
 	ConfigManager configManager;
 
 	@Before
 	public void before() {
+		Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
 		when(configManager.getRSProfileKey()).thenReturn("ABCDEF01");
 	}
 
@@ -39,13 +46,12 @@ public class TimeTrackingTest
 		int secondsSinceLastSpawn = 60 * 60 * 10;
 		mockConfigGet(RandomEventAnalyticsConfig.SECONDS_SINCE_LAST_RANDOM, secondsSinceLastSpawn);
 
-		TimeTracking tracking = new TimeTracking();
-		tracking.init(
+		timeTracking.init(
 			Instant.now(),
 			null
 		);
 
-		Assert.assertEquals(secondsSinceLastSpawn / TimeTracking.SPAWN_INTERVAL_SECONDS, tracking.getIntervalsSinceLastRandom());
+		Assert.assertEquals(secondsSinceLastSpawn / TimeTracking.SPAWN_INTERVAL_SECONDS, timeTracking.getIntervalsSinceLastRandom());
 	}
 
 	@Test
@@ -54,13 +60,12 @@ public class TimeTrackingTest
 		int secondsSinceLastSpawn = 60 * 60;
 
 		Instant now = Instant.now();
-		TimeTracking tracking = new TimeTracking();
-		tracking.init(
+		timeTracking.init(
 			Instant.now(),
 			now.minus(secondsSinceLastSpawn, ChronoUnit.SECONDS)
 		);
 
-		tracking.setRandomEventSpawned();
+		timeTracking.setRandomEventSpawned();
 
 		assertConfigSet(RandomEventAnalyticsConfig.SECONDS_SINCE_LAST_RANDOM, 0);
 		assertConfigSet(RandomEventAnalyticsConfig.INTERVALS_SINCE_LAST_RANDOM, 0);
@@ -68,8 +73,8 @@ public class TimeTrackingTest
 		assertConfigSet(RandomEventAnalyticsConfig.SECONDS_IN_INSTANCE, 0);
 
 
-		Assert.assertEquals(0, tracking.getIntervalsSinceLastRandom());
-		Assert.assertEquals(0, tracking.getTotalSecondsSinceLastRandomEvent());
+		Assert.assertEquals(0, timeTracking.getIntervalsSinceLastRandom());
+		Assert.assertEquals(0, timeTracking.getTotalSecondsSinceLastRandomEvent());
 	}
 
 	@Test
@@ -82,8 +87,8 @@ public class TimeTrackingTest
 		mockConfigGet(RandomEventAnalyticsConfig.SECONDS_SINCE_LAST_RANDOM, secondsSinceLastSpawn);
 
 		Instant loginTime = Instant.now().minus(25, ChronoUnit.MINUTES ); // logged in 25 minutes ago.
-		TimeTracking tracking = new TimeTracking();
-		tracking.init(
+
+		timeTracking.init(
 			loginTime,
 			loginTime.minus(secondsSinceLastSpawn, ChronoUnit.SECONDS)
 		);
@@ -91,14 +96,14 @@ public class TimeTrackingTest
 		mockConfigGet(RandomEventAnalyticsConfig.INTERVALS_SINCE_LAST_RANDOM,0);
 
 		Instant spawnedInstant = loginTime.plus(10 * 60, ChronoUnit.SECONDS); // 15 minutes ago (10min after login)
-		tracking.setStrangePlantSpawned(new RandomEventRecord(spawnedInstant.toEpochMilli(), tracking, null, null, null));
+		timeTracking.setStrangePlantSpawned(new RandomEventRecord(spawnedInstant.toEpochMilli(), timeTracking, null, null, null));
 
-		Assert.assertEquals(3, tracking.getIntervalsSinceLastRandom());
-		int newEventSpawnedSeconds = (int) Duration.between(tracking.getLastRandomSpawnInstant(), Instant.now()).getSeconds();
+		Assert.assertEquals(3, timeTracking.getIntervalsSinceLastRandom());
+		int newEventSpawnedSeconds = (int) Duration.between(timeTracking.getLastRandomSpawnInstant(), Instant.now()).getSeconds();
 		Assert.assertEquals(900, newEventSpawnedSeconds);
-		Assert.assertEquals(3, tracking.getIntervalsSinceLastRandom());
+		Assert.assertEquals(3, timeTracking.getIntervalsSinceLastRandom());
 
-		Assert.assertEquals(900, tracking.getTotalSecondsSinceLastRandomEvent());
+		Assert.assertEquals(900, timeTracking.getTotalSecondsSinceLastRandomEvent());
 	}
 
 	private <T> void mockConfigGet(String key, T returnValue) {
