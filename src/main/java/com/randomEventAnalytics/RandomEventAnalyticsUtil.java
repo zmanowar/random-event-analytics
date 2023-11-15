@@ -195,6 +195,14 @@ public class RandomEventAnalyticsUtil
 				true,
 				false
 			));
+			NpcIdWrapper countCheck = new NpcIdWrapper(
+				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/count_check" +
+					".png")),
+				false, // TODO: Unsure if he is available in wilderness, but this flag is currently unused.
+				true
+			);
+			put(NpcID.COUNT_CHECK_12551, countCheck);
+			put(NpcID.COUNT_CHECK_12552, countCheck);
 		}
 	};
 	static final DecimalFormat TWO_DECIMAL_FORMAT = new DecimalFormat("0.00");

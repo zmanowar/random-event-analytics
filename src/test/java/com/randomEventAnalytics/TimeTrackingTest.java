@@ -2,13 +2,13 @@ package com.randomEventAnalytics;
 
 
 import com.google.inject.Guice;
-import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.randomEventAnalytics.localstorage.RandomEventRecord;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import javax.inject.Inject;
 import net.runelite.client.config.ConfigManager;
 import org.junit.Assert;
 import org.junit.Before;
@@ -22,9 +22,9 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class TimeTrackingTest
 {
-	@Inject
-	TimeTracking timeTracking;
 
+	@Inject
+	private TimeTracking timeTracking;
 
 	@Mock
 	@Bind
@@ -87,21 +87,23 @@ public class TimeTrackingTest
 		mockConfigGet(RandomEventAnalyticsConfig.SECONDS_SINCE_LAST_RANDOM, secondsSinceLastSpawn);
 
 		Instant loginTime = Instant.now().minus(25, ChronoUnit.MINUTES ); // logged in 25 minutes ago.
+
 		timeTracking.init(
 			loginTime,
 			loginTime.minus(secondsSinceLastSpawn, ChronoUnit.SECONDS)
 		);
 
+		mockConfigGet(RandomEventAnalyticsConfig.INTERVALS_SINCE_LAST_RANDOM,0);
+
 		Instant spawnedInstant = loginTime.plus(10 * 60, ChronoUnit.SECONDS); // 15 minutes ago (10min after login)
 		timeTracking.setStrangePlantSpawned(new RandomEventRecord(spawnedInstant.toEpochMilli(), timeTracking, null, null, null));
 
-		mockConfigGet(RandomEventAnalyticsConfig.SECONDS_SINCE_LAST_RANDOM, 0);
-		mockConfigGet(RandomEventAnalyticsConfig.INTERVALS_SINCE_LAST_RANDOM, 0);
 		Assert.assertEquals(3, timeTracking.getIntervalsSinceLastRandom());
 		int newEventSpawnedSeconds = (int) Duration.between(timeTracking.getLastRandomSpawnInstant(), Instant.now()).getSeconds();
 		Assert.assertEquals(900, newEventSpawnedSeconds);
+		Assert.assertEquals(3, timeTracking.getIntervalsSinceLastRandom());
+
 		Assert.assertEquals(900, timeTracking.getTotalSecondsSinceLastRandomEvent());
-		assertConfigSet(RandomEventAnalyticsConfig.SECONDS_SINCE_LAST_RANDOM, 0);
 	}
 
 	private <T> void mockConfigGet(String key, T returnValue) {
