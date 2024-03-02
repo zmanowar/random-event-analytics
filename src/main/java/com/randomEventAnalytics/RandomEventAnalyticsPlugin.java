@@ -211,7 +211,9 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		RandomEventRecord record = localStorage.getMostRecentRandom();
 		if (record.spawnedTime < 0)
 		{
-			return null;
+			// This assumes the profile failed to load. eg. malformed data, old profile that never had a random spawn, etc.
+			// we'll reset the timer.
+			return Instant.now();
 		}
 
 		return Instant.ofEpochMilli(record.spawnedTime);
