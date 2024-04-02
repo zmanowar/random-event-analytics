@@ -209,7 +209,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 
 		// One-time Update: This handles outdated profile config, should only ever need to be called once per profile.
 		RandomEventRecord record = localStorage.getMostRecentRandom();
-		if (record.spawnedTime < 0)
+		if (record == null || record.spawnedTime < 0)
 		{
 			// This assumes the profile failed to load. eg. malformed data, old profile that never had a random spawn, etc.
 			// we'll reset the timer.
