@@ -17,6 +17,7 @@ import net.runelite.client.Notifier;
 import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.plugins.xptracker.XpTrackerService;
+import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.overlay.OverlayManager;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,6 +65,10 @@ public class RandomEventAnalyticsPluginTest
 	@Mock
 	@Bind
 	XpTrackerService xpTrackerService;
+
+	@Mock
+	@Bind
+	ClientToolbar clientToolbar;
 
 	@Mock
 	@Bind
