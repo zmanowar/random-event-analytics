@@ -21,6 +21,7 @@ import net.runelite.api.GameState;
 import net.runelite.api.NPC;
 import net.runelite.api.NpcID;
 import net.runelite.api.Player;
+import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.InteractingChanged;
@@ -42,6 +43,7 @@ import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.ImageUtil;
+import net.runelite.client.util.Text;
 
 @Slf4j
 @PluginDescriptor(name = "Random Event Analytics")
@@ -51,7 +53,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	private static final int RANDOM_EVENT_TIMEOUT = 150;
 	private static final int STRANGE_PLANT_SPAWN_RADIUS = 1;
 	private static final String PLANT_SPAWNED_NOTIFICATION_MESSAGE =
-		"A Strange Plant has spawned, please visit the Random Event Analytics panel to confirm the random.";
+		"A Strange Plant has spawned, please click the plant to determine eligibility.";
 	@Inject
 	private ConfigManager configManager;
 	@Inject
@@ -80,6 +82,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	private String profile;
 	private int lastNotificationTick = -RANDOM_EVENT_TIMEOUT;
 	private NavigationButton navButton;
+	private RandomEventRecord unconfirmedStrangePlantRecord;
 
 	@Provides
 	RandomEventAnalyticsConfig provideConfig(ConfigManager configManager)
@@ -293,14 +296,15 @@ public class RandomEventAnalyticsPlugin extends Plugin
 			// We only want to notify about strange plants when it's possibly the user's random
 			return;
 		}
+
 		/**
 		 * Unfortunately we cannot determine if the Strange Plant belongs to the player
 		 * (See onInteractingChange)
-		 * So we need to add an unconfirmed record (UI only) that allows the player to
-		 * confirm if the plant belongs to them. Only then will it update the records.
+		 * However, we can rely on the player clicking the plant (onChatMessage) to determine
+		 * if the player spawned the plant.
 		 */
-		RandomEventRecord record = createRandomEventRecord(npc);
-		panel.addUnconfirmedRandom(record);
+		unconfirmedStrangePlantRecord = createRandomEventRecord(npc);
+
 		chatMessageManager.queue(QueuedMessage.builder().type(ChatMessageType.CONSOLE).runeLiteFormattedMessage(PLANT_SPAWNED_NOTIFICATION_MESSAGE).build());
 		notifier.notify(PLANT_SPAWNED_NOTIFICATION_MESSAGE);
 	}
@@ -312,6 +316,27 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		{
 			panel.updateEstimation();
 			timeTracking.onTick();
+		}
+	}
+
+	@Subscribe
+	public void onChatMessage(ChatMessage event) {
+		if (unconfirmedStrangePlantRecord == null || event.getType() != ChatMessageType.GAMEMESSAGE) {
+			return;
+		}
+
+		// If the plant was spawned >= 1 minutes ago, let's reset the record. TBD how long plants stick around.
+		if (unconfirmedStrangePlantRecord.spawnedTime > Instant.now().toEpochMilli() + 60000) {
+			unconfirmedStrangePlantRecord = null;
+			return;
+		}
+
+		String message = Text.removeTags(event.getMessage());
+		if (message.startsWith("The fruit isn't ready to be picked yet.") || message.startsWith("Your reward is: 1x Strange fruit.")) {
+			addRandomEvent(unconfirmedStrangePlantRecord);
+			unconfirmedStrangePlantRecord = null;
+		} else if (message.startsWith("It's not here for you.")) {
+			unconfirmedStrangePlantRecord = null;
 		}
 	}
 
