@@ -332,7 +332,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		}
 
 		String message = Text.removeTags(event.getMessage());
-		if (message.startsWith("The fruit isn't ready to be picked yet.") || message.startsWith("Your reward is: 1x Strange fruit.")) {
+		if (message.startsWith("The fruit isn't ready to be picked yet.") || message.startsWith("You pick the fruit from the plant.")) {
 			addRandomEvent(unconfirmedStrangePlantRecord);
 			unconfirmedStrangePlantRecord = null;
 		} else if (message.startsWith("It's not here for you.")) {
@@ -361,6 +361,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		if (isStrangePlant(record.npcInfoRecord.npcId))
 		{
 			timeTracking.setStrangePlantSpawned(record);
+			unconfirmedStrangePlantRecord = null;
 		}
 		else
 		{
