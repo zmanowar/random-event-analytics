@@ -11,6 +11,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 
@@ -94,24 +95,47 @@ public class RandomEventRecordBox extends JPanel
 		confirmationPanel.setBorder(new EmptyBorder(0, 0, 0, 0));
 		confirmationPanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 		confirmationPanel.setLayout(new BorderLayout());
+
+		JPanel labelPanel = new JPanel();
+		labelPanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+		labelPanel.setLayout(new GridLayout(2, 1, 5, 0)); // Stack labels vertically
+		labelPanel.setBorder(new EmptyBorder(0, 0, 10, 0));
 		JLabel confirmRandomLabel = new JLabel("Is this your random event?");
+		JLabel altConfirmLabel = new JLabel("<html>You may also click the plant to confirm.</html>");
+		altConfirmLabel.setFont(FontManager.getRunescapeSmallFont());
+
+		labelPanel.add(confirmRandomLabel);
+		labelPanel.add(altConfirmLabel);
+
+		// Button Panel
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+		buttonPanel.setLayout(new GridLayout(1, 2));
+
 		JButton confirm = new JButton("\u2713");
 		confirm.setFont(new Font(Font.DIALOG, Font.PLAIN, 12));
+		confirm.setBorder(new LineBorder(Color.GREEN, 1));
 		confirm.setForeground(Color.GREEN);
 		confirm.addActionListener((e) -> {
 			SwingUtilities.invokeLater(() -> {
 				panel.eventRecordBoxUpdated(this, true);
 			});
 		});
+
 		JButton cancel = new JButton("\u2717");
 		cancel.setFont(new Font(Font.DIALOG, Font.PLAIN, 12));
+		cancel.setBorder(new LineBorder(Color.RED, 1));
 		cancel.setForeground(Color.RED);
 		cancel.addActionListener((e) -> {
 			panel.eventRecordBoxUpdated(this, false);
 		});
-		confirmationPanel.add(confirmRandomLabel, BorderLayout.NORTH);
-		confirmationPanel.add(confirm, BorderLayout.WEST);
-		confirmationPanel.add(cancel, BorderLayout.EAST);
+
+		buttonPanel.add(confirm);
+		buttonPanel.add(cancel);
+
+		confirmationPanel.add(labelPanel, BorderLayout.NORTH);
+		confirmationPanel.add(buttonPanel, BorderLayout.SOUTH);
+
 		return confirmationPanel;
 	}
 

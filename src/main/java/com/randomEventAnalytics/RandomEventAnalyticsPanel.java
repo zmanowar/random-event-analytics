@@ -41,6 +41,7 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 	public SimpleDateFormat longTimeFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 	TimeTracking timeTracking;
 	RandomEventAnalyticsPlugin plugin;
+	private RandomEventRecordBox unconfirmedRandomEventRecordBox;
 
 	@Inject
 	RandomEventAnalyticsPanel(RandomEventAnalyticsPlugin plugin, RandomEventAnalyticsConfig config,
@@ -127,6 +128,10 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 		eventPanel.repaint();
 	}
 
+	public void removeUnconfirmedRandom() {
+		eventPanel.remove(unconfirmedRandomEventRecordBox);
+	}
+
 	public void clearAllRandomsView()
 	{
 		eventPanel.removeAll();
@@ -147,6 +152,8 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 	{
 		SwingUtilities.invokeLater(() -> {
 			RandomEventRecordBox recordBox = new RandomEventRecordBox(this, record, false);
+			// TODO: Refactor this to store the unconfirmed record box for removal later without reloading.
+			unconfirmedRandomEventRecordBox = recordBox;
 			eventPanel.add(recordBox, 0);
 			infoBoxes.add(recordBox);
 		});
