@@ -304,7 +304,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		 * if the player spawned the plant.
 		 */
 		unconfirmedStrangePlantRecord = createRandomEventRecord(npc);
-
+		panel.addUnconfirmedRandom(unconfirmedStrangePlantRecord);
 		chatMessageManager.queue(QueuedMessage.builder().type(ChatMessageType.CONSOLE).runeLiteFormattedMessage(PLANT_SPAWNED_NOTIFICATION_MESSAGE).build());
 		notifier.notify(PLANT_SPAWNED_NOTIFICATION_MESSAGE);
 	}
@@ -321,12 +321,13 @@ public class RandomEventAnalyticsPlugin extends Plugin
 
 	@Subscribe
 	public void onChatMessage(ChatMessage event) {
-		if (unconfirmedStrangePlantRecord == null || event.getType() != ChatMessageType.GAMEMESSAGE) {
+		ChatMessageType type = event.getType();
+		if (unconfirmedStrangePlantRecord == null || (type != ChatMessageType.GAMEMESSAGE && type != ChatMessageType.SPAM)) {
 			return;
 		}
 
-		// If the plant was spawned >= 1 minutes ago, let's reset the record. TBD how long plants stick around.
-		if (unconfirmedStrangePlantRecord.spawnedTime > Instant.now().toEpochMilli() + 60000) {
+		// If the plant was spawned >= 2 minutes ago, let's reset the record. TBD how long plants stick around.
+		if (unconfirmedStrangePlantRecord.spawnedTime > Instant.now().toEpochMilli() + (60000 * 2)) {
 			unconfirmedStrangePlantRecord = null;
 			return;
 		}
@@ -338,6 +339,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		} else if (message.startsWith("It's not here for you.")) {
 			unconfirmedStrangePlantRecord = null;
 		}
+		panel.removeUnconfirmedRandom();
 	}
 
 	private void persistTimeTrackingConfig()
