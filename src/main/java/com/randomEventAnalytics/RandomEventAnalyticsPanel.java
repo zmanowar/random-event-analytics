@@ -45,8 +45,10 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 	private final JLabel statusMessageLabel = new JLabel();
 	public SimpleDateFormat shortTimeFormat = new SimpleDateFormat("MMM dd, h:mm a");
 	public SimpleDateFormat longTimeFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-	/** 24-hour clock formatter used for anchor and next-tick labels. Only accessed from the @Schedule thread. */
-	private final SimpleDateFormat hmsFormat = new SimpleDateFormat("HH:mm:ss");
+	/**
+	 * Formats the absolute time shown in the Anchor and Next 5-min tick labels. Updated by updateConfig().
+	 */
+	private SimpleDateFormat hmsFormat = new SimpleDateFormat("HH:mm:ss");
 	TimeTracking timeTracking;
 	RandomEventAnalyticsPlugin plugin;
 	private RandomEventRecordBox unconfirmedRandomEventRecordBox;
@@ -148,7 +150,7 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 		estimationPanel.add(Box.createVerticalStrut(4));
 
 		final JPanel anchorFooterRow = buildRow();
-		anchorFooterRow.add(buildKeyLabel("Anchor"), BorderLayout.WEST);
+		anchorFooterRow.add(buildKeyLabel("Last Spawn"), BorderLayout.WEST);
 		anchorTimeLabel.setFont(FontManager.getRunescapeSmallFont());
 		anchorTimeLabel.setForeground(Color.WHITE);
 		anchorFooterRow.add(anchorTimeLabel, BorderLayout.EAST);
@@ -165,11 +167,13 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 		estimationPanel.add(Box.createVerticalStrut(6));
 		statusMessageLabel.setFont(FontManager.getRunescapeSmallFont());
 		statusMessageLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
-		estimationPanel.add(statusMessageLabel);
+		final JPanel statusMessageRow = buildRow();
+		statusMessageRow.add(statusMessageLabel, BorderLayout.CENTER);
+		estimationPanel.add(statusMessageRow);
 
 		layoutPanel.add(estimationPanel);
 
-		layoutPanel.add(buildSimulatePanel());
+		// layoutPanel.add(buildSimulatePanel());
 
 		eventPanel.setLayout(new BoxLayout(eventPanel, BoxLayout.Y_AXIS));
 		eventPanel.setBorder(new EmptyBorder(10, 0, 0, 0));
@@ -184,7 +188,8 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 		simulatePanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
 
 		JButton simulateButton = new JButton("Simulate Spawn");
-		simulateButton.setToolTipText("Resets the spawn window as if a random event just occurred. Does not log an event.");
+		simulateButton.setToolTipText("Resets the spawn window as if a random event just occurred. Does not log an " +
+			"event.");
 		simulateButton.setFocusPainted(false);
 		simulateButton.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 		simulateButton.setForeground(Color.LIGHT_GRAY);
@@ -198,7 +203,9 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 		return simulatePanel;
 	}
 
-	/** Initialises the status badge with the default NO_DATA appearance. */
+	/**
+	 * Initialises the status badge with the default NO_DATA appearance.
+	 */
 	private void setupStatusBadge()
 	{
 		statusBadgeLabel.setOpaque(true);
@@ -209,7 +216,9 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 		statusBadgeLabel.setText(WindowState.NO_DATA.iconPrefix + WindowState.NO_DATA.label);
 	}
 
-	/** Creates a full-width row panel (BorderLayout, dark background) for use in a BoxLayout Y_AXIS container. */
+	/**
+	 * Creates a full-width row panel (BorderLayout, dark background) for use in a BoxLayout Y_AXIS container.
+	 */
 	private JPanel buildRow()
 	{
 		JPanel row = new JPanel(new BorderLayout());
@@ -217,7 +226,9 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 		return row;
 	}
 
-	/** Creates a dimmed key label using the RuneScape small font. */
+	/**
+	 * Creates a dimmed key label using the RuneScape small font.
+	 */
 	private JLabel buildKeyLabel(String text)
 	{
 		JLabel label = new JLabel(text);
@@ -239,7 +250,8 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 		eventPanel.repaint();
 	}
 
-	public void removeUnconfirmedRandom() {
+	public void removeUnconfirmedRandom()
+	{
 		eventPanel.remove(unconfirmedRandomEventRecordBox);
 	}
 
@@ -272,17 +284,25 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 
 	public void updateConfig()
 	{
-		if (config.timeFormatMode() == TimeFormat.TIME_12H) {
+		if (config.timeFormatMode() == TimeFormat.TIME_12H)
+		{
 			shortTimeFormat = new SimpleDateFormat("MMM dd, h:mm a");
 			longTimeFormat = new SimpleDateFormat("yyyy-MM-dd h:mm:ss a");
-		} else {
+			hmsFormat = new SimpleDateFormat("h:mm:ss a");
+		}
+		else
+		{
 			shortTimeFormat = new SimpleDateFormat("MMM dd, HH:mm");
 			longTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			hmsFormat = new SimpleDateFormat("HH:mm:ss");
 		}
-
+		// Invalidate the estimation cache so the next @Schedule tick re-renders
+		// the Anchor and Next 5-min tick labels with the updated format.
+		lastSecondsUntilTick = Integer.MIN_VALUE;
 	}
 
-	public void updateAllRandomEventBoxes() {
+	public void updateAllRandomEventBoxes()
+	{
 		infoBoxes.forEach(RandomEventRecordBox::update);
 	}
 
@@ -302,6 +322,7 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 					nextTickTimeLabel.setText("--:--:--");
 					tickCountdownLabel.setText("");
 					anchorTimeLabel.setText("\u2014");
+					anchorTimeLabel.setToolTipText(null);
 					sessionLabel.setText("\u2014");
 					statusMessageLabel.setText("");
 				});
@@ -400,6 +421,8 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 		final Instant anchor = timeTracking.getWindowAnchor();
 		final String anchorText = hmsFormat.format(new Date(anchor.toEpochMilli()))
 			+ (noEventsYet ? " (login)" : "");
+		final String anchorTooltip = shortTimeFormat.format(new Date(anchor.toEpochMilli()))
+			+ (noEventsYet ? " (login)" : "");
 
 		// Session duration
 		final String sessionText;
@@ -419,7 +442,7 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 		if (windowExpired)
 		{
 			statusMessage = offlineExt
-				? "Window has passed. If you were logged out, an offline extension of +10\u201370 min is possible."
+				? "Window has passed. If you were logged out, an offline extension of +10 - 70 min is possible."
 				: "Window has passed.";
 		}
 		else if (windowOpen)
@@ -450,13 +473,16 @@ public class RandomEventAnalyticsPanel extends PluginPanel
 			nextTickTimeLabel.setText(nextTickTimeText);
 			tickCountdownLabel.setText(tickCountdownText);
 			anchorTimeLabel.setText(anchorText);
+			anchorTimeLabel.setToolTipText(anchorTooltip);
 			sessionLabel.setText(sessionText);
 			statusMessageLabel.setText(
-				"<html><body style='width:180px'>" + statusMessage + "</body></html>");
+				"<html><body>" + statusMessage + "</body></html>");
 		});
 	}
 
-	/** Updates the status badge colour and label text. Must be called from the EDT. */
+	/**
+	 * Updates the status badge colour and label text. Must be called from the EDT.
+	 */
 	private void updateBadge(WindowState state)
 	{
 		statusBadgeLabel.setBackground(state.badgeColor);

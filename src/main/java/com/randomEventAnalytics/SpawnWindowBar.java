@@ -24,22 +24,30 @@ import net.runelite.client.ui.FontManager;
  */
 public class SpawnWindowBar extends JPanel
 {
-	/** Total window duration: 2 hours in seconds. */
+	/**
+	 * Total window duration: 2 hours in seconds.
+	 */
 	private static final int TOTAL_WINDOW_SECONDS = TimeTracking.SECONDS_IN_AN_HOUR * 2;
 
 	private static final int TRACK_HEIGHT = 12;
 	private static final int TICK_OVERHANG = 4; // extra pixels the midpoint tick extends below the track
 	private static final int LABEL_GAP = 2;
 
-	/** Dark background for the pre-window half of the track. */
+	/**
+	 * Dark background for the pre-window half of the track.
+	 */
 	private static final Color TRACK_BG = new Color(35, 35, 35);
-	/** Slightly lighter background for the +1h–+2h eligible zone. */
+	/**
+	 * Slightly lighter background for the +1h–+2h eligible zone.
+	 */
 	private static final Color TRACK_WINDOW_BG = new Color(50, 50, 50);
 	private static final Color TICK_COLOR = new Color(120, 120, 120);
 	private static final Color LABEL_COLOR = ColorScheme.LIGHT_GRAY_COLOR;
 	private static final Color CURSOR_COLOR = Color.WHITE;
 
-	/** Alpha applied to the bar fill when in NO_DATA state (estimated from first login). */
+	/**
+	 * Alpha applied to the bar fill when in NO_DATA state (estimated from first login).
+	 */
 	private static final float NO_DATA_ALPHA = 0.55f;
 
 	private long secondsSinceAnchor = 0;
@@ -148,7 +156,7 @@ public class SpawnWindowBar extends JPanel
 
 			g2.setColor(LABEL_COLOR);
 
-			g2.drawString("Anchor", 0, labelY);
+			g2.drawString("Last Spawn", 0, labelY);
 
 			String midLabel = "+1h";
 			int midLabelW = fm.stringWidth(midLabel);
