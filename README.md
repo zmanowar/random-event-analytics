@@ -10,7 +10,7 @@ Random Events spawn every 1 - 2 hours (since the last spawn) in real-time. A che
 
 ![panel waiting](panel-waiting-example.png)
 
-![panel eligible](image.png)
+![panel eligible](panel-eligible-example.png)
 
 The panel features a progress bar representing the next spawn window, a countdown and a progress bar that fills every 5 minutes of logged-in time, and a list of previously spawned randoms.
 
