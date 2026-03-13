@@ -10,8 +10,8 @@ import net.runelite.client.ui.overlay.components.PanelComponent;
 
 public class RandomEventAnalyticsOverlay extends Overlay
 {
-	private static final String TIME_UNTIL_LABEL = "Estimate: ";
-	private static final String OVERESTIMATE_LABEL = "Overestimate: ";
+	private static final String EARLIEST_LABEL = "Earliest possible: ";
+	private static final String LATEST_LABEL = "Latest possible: ";
 	private static final String TITLE_LABEL = "Random Event";
 	private final RandomEventAnalyticsConfig config;
 	private final PanelComponent panelComponent = new PanelComponent();
@@ -39,35 +39,57 @@ public class RandomEventAnalyticsOverlay extends Overlay
 
 		if (config.enableEstimation())
 		{
+			// 5-minute eligibility window countdown (existing behaviour).
 			int closestSpawnTimer = timeTracking.getNextRandomEventEstimation();
 			panelComponent.getChildren().add(LineComponent.builder()
-				.left(timeTracking.hasLoggedInLongEnoughForSpawn() ? "Random Event Eligible In" : "Initial login " +
-					"countdown." +
-					"..")
+				.left(timeTracking.hasLoggedInLongEnoughForSpawn() ? "Eligible check in" : "Initial login...")
 				.right(RandomEventAnalyticsUtil.formatSeconds(Math.abs(closestSpawnTimer)))
 				.build());
 		}
 
 		if (config.enableConfigCountdown())
 		{
-			int estimatedSeconds = timeTracking.getCountdownSeconds(config.countdownMinutes());
-			panelComponent.getChildren().add(LineComponent.builder()
-				.left(estimatedSeconds >= 0 ? TIME_UNTIL_LABEL : OVERESTIMATE_LABEL)
-				.right(RandomEventAnalyticsUtil.formatSeconds(Math.abs(estimatedSeconds)))
-				.build());
-		}
+			boolean windowExpired = timeTracking.isWindowExpired();
+			boolean windowOpen = timeTracking.isWindowOpen();
 
+			if (windowExpired)
+			{
+				String status = timeTracking.isOfflineExtensionLikely() ? "Offline ext. possible" : "Window passed";
+				panelComponent.getChildren().add(LineComponent.builder()
+					.left(EARLIEST_LABEL)
+					.right("Overdue \u2014 " + status)
+					.build());
+			}
+			else if (windowOpen)
+			{
+				panelComponent.getChildren().add(LineComponent.builder()
+					.left(EARLIEST_LABEL)
+					.right("Now")
+					.build());
+				panelComponent.getChildren().add(LineComponent.builder()
+					.left(LATEST_LABEL)
+					.right(RandomEventAnalyticsUtil.formatSeconds((int) timeTracking.getSecondsUntilLatest()))
+					.build());
+			}
+			else
+			{
+				boolean noEventsYet = timeTracking.getLastRandomSpawnInstant() == null;
+				panelComponent.getChildren().add(LineComponent.builder()
+					.left(noEventsYet ? "Earliest (est.): " : EARLIEST_LABEL)
+					.right(RandomEventAnalyticsUtil.formatSeconds((int) timeTracking.getSecondsUntilEarliest()))
+					.build());
+				panelComponent.getChildren().add(LineComponent.builder()
+					.left(noEventsYet ? "Latest (est.): " : LATEST_LABEL)
+					.right(RandomEventAnalyticsUtil.formatSeconds((int) timeTracking.getSecondsUntilLatest()))
+					.build());
+			}
+		}
 
 		if (config.showDebug())
 		{
 			panelComponent.getChildren().add(LineComponent.builder()
 				.left("Ticks: ")
 				.right(String.valueOf(timeTracking.getTicksSinceLastRandomEvent()))
-				.build());
-
-			panelComponent.getChildren().add(LineComponent.builder()
-				.left("Intervals: ")
-				.right(String.valueOf(timeTracking.getIntervalsSinceLastRandom()))
 				.build());
 
 			panelComponent.getChildren().add(LineComponent.builder()

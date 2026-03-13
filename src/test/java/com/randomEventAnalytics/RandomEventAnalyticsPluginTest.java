@@ -4,6 +4,7 @@ import com.google.inject.Guice;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.randomEventAnalytics.localstorage.RandomEventAnalyticsLocalStorage;
+import java.time.Clock;
 import javax.inject.Inject;
 import net.runelite.api.Actor;
 import net.runelite.api.Client;
@@ -73,6 +74,9 @@ public class RandomEventAnalyticsPluginTest
 	@Mock
 	@Bind
 	Notifier notifier;
+
+	@Bind
+	Clock clock = Clock.systemUTC();
 
 	@Inject
 	RandomEventAnalyticsPlugin plugin;
