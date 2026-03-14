@@ -15,6 +15,7 @@ public interface RandomEventAnalyticsConfig extends Config
 	String SECONDS_IN_INSTANCE = "secondsInInstance";
 	String LAST_RANDOM_SPAWN_INSTANT = "lastRandomSpawnInstant";
 	String INTERVALS_SINCE_LAST_RANDOM = "intervalsSinceLastRandom";
+	String FIRST_LOGIN_INSTANT = "firstLoginInstant";
 	@ConfigSection(
 		name = "Countdown",
 		description = "Logged-in countdown configuration",

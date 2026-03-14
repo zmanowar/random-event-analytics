@@ -2,6 +2,7 @@ package com.randomEventAnalytics;
 
 import com.google.inject.Provides;
 import com.randomEventAnalytics.localstorage.NpcInfoRecord;
+import java.time.Clock;
 import com.randomEventAnalytics.localstorage.PlayerInfoRecord;
 import com.randomEventAnalytics.localstorage.RandomEventAnalyticsLocalStorage;
 import com.randomEventAnalytics.localstorage.RandomEventRecord;
@@ -88,6 +89,12 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	RandomEventAnalyticsConfig provideConfig(ConfigManager configManager)
 	{
 		return configManager.getConfig(RandomEventAnalyticsConfig.class);
+	}
+
+	@Provides
+	Clock provideClock()
+	{
+		return Clock.systemUTC();
 	}
 
 	@Override
@@ -314,7 +321,6 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	{
 		if (client.getGameState() == GameState.LOGGED_IN)
 		{
-			panel.updateEstimation();
 			timeTracking.onTick();
 		}
 	}
@@ -398,7 +404,8 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	)
 	public void updateSchedule()
 	{
-		if (client.getGameState() == GameState.LOGGED_IN)
+		// Update regardless of login state so the countdown ticks while logged out.
+		if (panel != null)
 		{
 			panel.updateEstimation();
 		}
