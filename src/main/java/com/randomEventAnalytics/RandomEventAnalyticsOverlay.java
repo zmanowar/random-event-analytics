@@ -1,31 +1,33 @@
 package com.randomEventAnalytics;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import javax.inject.Inject;
+import net.runelite.api.Client;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayPosition;
+import net.runelite.client.ui.overlay.components.ComponentConstants;
 import net.runelite.client.ui.overlay.components.LineComponent;
 import net.runelite.client.ui.overlay.components.PanelComponent;
 
 public class RandomEventAnalyticsOverlay extends Overlay
 {
-	private static final String EARLIEST_LABEL = "Earliest possible: ";
-	private static final String LATEST_LABEL = "Latest possible: ";
-	private static final String TITLE_LABEL = "Random Event";
+	private static final int BACKGROUND_ALPHA = 126;
+
 	private final RandomEventAnalyticsConfig config;
 	private final PanelComponent panelComponent = new PanelComponent();
 	private final TimeTracking timeTracking;
-	private final RandomEventAnalyticsPlugin plugin;
+	private final Client client;
 
 	@Inject
 	private RandomEventAnalyticsOverlay(RandomEventAnalyticsConfig config,
-										TimeTracking timeTracking, RandomEventAnalyticsPlugin plugin)
+										TimeTracking timeTracking, Client client)
 	{
 		setPosition(OverlayPosition.ABOVE_CHATBOX_RIGHT);
 		this.config = config;
 		this.timeTracking = timeTracking;
-		this.plugin = plugin;
+		this.client = client;
 	}
 
 	@Override
@@ -35,68 +37,54 @@ public class RandomEventAnalyticsOverlay extends Overlay
 		{
 			return null;
 		}
+
 		panelComponent.getChildren().clear();
+		panelComponent.setPreferredSize(new Dimension(ComponentConstants.STANDARD_WIDTH, 0));
 
-		if (config.enableEstimation())
+		final boolean hasAnchor = timeTracking.getWindowAnchor() != null;
+		final boolean windowExpired = timeTracking.isWindowExpired();
+		final boolean windowOpen = timeTracking.isWindowOpen();
+		final boolean inInstance = client.isInInstancedRegion();
+		final boolean noEventsYet = timeTracking.getLastRandomSpawnInstant() == null;
+		final WindowState windowState = WindowState.from(hasAnchor, windowExpired, windowOpen, inInstance,
+			noEventsYet);
+
+		if (config.enableOverlayBackground())
 		{
-			// 5-minute eligibility window countdown (existing behaviour).
-			int closestSpawnTimer = timeTracking.getNextRandomEventEstimation();
-			panelComponent.getChildren().add(LineComponent.builder()
-				.left(timeTracking.hasLoggedInLongEnoughForSpawn() ? "Eligible check in" : "Initial login...")
-				.right(RandomEventAnalyticsUtil.formatSeconds(Math.abs(closestSpawnTimer)))
-				.build());
+			final Color base = windowState.badgeColor;
+			panelComponent.setBackgroundColor(new Color(base.getRed(), base.getGreen(), base.getBlue(),
+				BACKGROUND_ALPHA));
+		}
+		else
+		{
+			panelComponent.setBackgroundColor(ComponentConstants.STANDARD_BACKGROUND_COLOR);
 		}
 
-		if (config.enableConfigCountdown())
+		// Tick line: 5-minute eligibility countdown.
+		final int nextTickSeconds = timeTracking.getNextRandomEventEstimation();
+		panelComponent.getChildren().add(LineComponent.builder()
+			.left("Next Check:")
+			.right(RandomEventAnalyticsUtil.formatSeconds(Math.abs(nextTickSeconds)))
+			.build());
+
+		// Earliest line: countdown to the spawn window opening.
+		final String earliestText;
+		if (windowExpired)
 		{
-			boolean windowExpired = timeTracking.isWindowExpired();
-			boolean windowOpen = timeTracking.isWindowOpen();
-
-			if (windowExpired)
-			{
-				String status = timeTracking.isOfflineExtensionLikely() ? "Offline ext. possible" : "Window passed";
-				panelComponent.getChildren().add(LineComponent.builder()
-					.left(EARLIEST_LABEL)
-					.right("Overdue \u2014 " + status)
-					.build());
-			}
-			else if (windowOpen)
-			{
-				panelComponent.getChildren().add(LineComponent.builder()
-					.left(EARLIEST_LABEL)
-					.right("Now")
-					.build());
-				panelComponent.getChildren().add(LineComponent.builder()
-					.left(LATEST_LABEL)
-					.right(RandomEventAnalyticsUtil.formatSeconds((int) timeTracking.getSecondsUntilLatest()))
-					.build());
-			}
-			else
-			{
-				boolean noEventsYet = timeTracking.getLastRandomSpawnInstant() == null;
-				panelComponent.getChildren().add(LineComponent.builder()
-					.left(noEventsYet ? "Earliest (est.): " : EARLIEST_LABEL)
-					.right(RandomEventAnalyticsUtil.formatSeconds((int) timeTracking.getSecondsUntilEarliest()))
-					.build());
-				panelComponent.getChildren().add(LineComponent.builder()
-					.left(noEventsYet ? "Latest (est.): " : LATEST_LABEL)
-					.right(RandomEventAnalyticsUtil.formatSeconds((int) timeTracking.getSecondsUntilLatest()))
-					.build());
-			}
+			earliestText = "overdue";
 		}
-
-		if (config.showDebug())
+		else if (windowOpen)
 		{
-			panelComponent.getChildren().add(LineComponent.builder()
-				.left("Ticks: ")
-				.right(String.valueOf(timeTracking.getTicksSinceLastRandomEvent()))
-				.build());
-
-			panelComponent.getChildren().add(LineComponent.builder()
-				.left("# of Events Logged: ")
-				.right(String.valueOf(plugin.getNumberOfEventsLogged()))
-				.build());
+			earliestText = "now";
 		}
+		else
+		{
+			earliestText = RandomEventAnalyticsUtil.formatSeconds((int) timeTracking.getSecondsUntilEarliest());
+		}
+		panelComponent.getChildren().add(LineComponent.builder()
+			.left("Earliest:")
+			.right(earliestText)
+			.build());
 
 		return panelComponent.render(graphics);
 	}
