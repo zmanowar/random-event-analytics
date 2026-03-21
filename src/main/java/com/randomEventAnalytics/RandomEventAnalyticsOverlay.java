@@ -67,23 +67,27 @@ public class RandomEventAnalyticsOverlay extends Overlay
 			.right(RandomEventAnalyticsUtil.formatSeconds(Math.abs(nextTickSeconds)))
 			.build());
 
-		// Earliest line: countdown to the spawn window opening.
-		final String earliestText;
+		// When the window is open, show the Latest countdown; otherwise show Earliest.
+		final String windowLabel;
+		final String windowText;
 		if (windowExpired)
 		{
-			earliestText = "overdue";
+			windowLabel = "Earliest:";
+			windowText = "overdue";
 		}
 		else if (windowOpen)
 		{
-			earliestText = "now";
+			windowLabel = "Latest:";
+			windowText = RandomEventAnalyticsUtil.formatSeconds((int) timeTracking.getSecondsUntilLatest());
 		}
 		else
 		{
-			earliestText = RandomEventAnalyticsUtil.formatSeconds((int) timeTracking.getSecondsUntilEarliest());
+			windowLabel = "Earliest:";
+			windowText = RandomEventAnalyticsUtil.formatSeconds((int) timeTracking.getSecondsUntilEarliest());
 		}
 		panelComponent.getChildren().add(LineComponent.builder()
-			.left("Earliest:")
-			.right(earliestText)
+			.left(windowLabel)
+			.right(windowText)
 			.build());
 
 		return panelComponent.render(graphics);
