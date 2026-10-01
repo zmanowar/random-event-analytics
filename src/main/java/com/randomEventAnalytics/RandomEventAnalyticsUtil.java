@@ -152,7 +152,13 @@ public class RandomEventAnalyticsUtil
 				true
 			);
 			put(NpcID.EVIL_BOB, evilBob);
-			put(NpcID.EVIL_BOB_6754, evilBob); // Pete
+
+			NpcIdWrapper prisonPete = new NpcIdWrapper(
+				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/prison_pete.png")),
+				false,
+				true
+			);
+			put(NpcID.EVIL_BOB_6754, prisonPete); // Pete
 
 			put(NpcID.LEO_6746, new NpcIdWrapper(
 				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/leo.png")),
@@ -169,8 +175,22 @@ public class RandomEventAnalyticsUtil
 			// TODO: Determine which of these are maze/mime to better describe "isAvailableInWilderness"
 			put(NpcID.MYSTERIOUS_OLD_MAN_6750, mysteriousOldMan); // Rick Turpentine style
 			put(NpcID.MYSTERIOUS_OLD_MAN_6751, mysteriousOldMan);
-			put(NpcID.MYSTERIOUS_OLD_MAN_6752, mysteriousOldMan); // Maze
-			put(NpcID.MYSTERIOUS_OLD_MAN_6753, mysteriousOldMan); // Mime
+
+			NpcIdWrapper maze = new NpcIdWrapper(
+				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads" +
+					"/maze.png")),
+				false,
+				true
+			);
+			put(NpcID.MYSTERIOUS_OLD_MAN_6752, maze); // Maze
+
+			NpcIdWrapper mime = new NpcIdWrapper(
+				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads" +
+					"/mime.png")),
+				false,
+				true
+			);
+			put(NpcID.MYSTERIOUS_OLD_MAN_6753, mime); // Mime
 
 			put(NpcID.QUIZ_MASTER_6755, new NpcIdWrapper(
 				new ImageIcon(ImageUtil.loadImageResource(RandomEventAnalyticsPlugin.class, "chatheads/quiz_master" +
@@ -214,6 +234,25 @@ public class RandomEventAnalyticsUtil
 	static
 	{
 		TWO_DECIMAL_FORMAT.setRoundingMode(RoundingMode.DOWN);
+	}
+
+	/**
+	 * Friendly display-name overrides for NPCs whose game name doesn't match the event they represent.
+	 * Only entries that differ from the in-game NPC name are listed here.
+	 */
+	public static final Map<Integer, String> DISPLAY_NAMES = new HashMap<Integer, String>()
+	{
+		{
+			put(NpcID.EVIL_BOB_6754, "Prison Pete");
+			put(NpcID.MYSTERIOUS_OLD_MAN_6752, "Maze");
+			put(NpcID.MYSTERIOUS_OLD_MAN_6753, "Mime");
+		}
+	};
+
+	/** Returns the friendly display name for an NPC, falling back to its in-game name. */
+	public static String getDisplayName(int npcId, String npcName)
+	{
+		return DISPLAY_NAMES.getOrDefault(npcId, npcName);
 	}
 
 	public static Set<Integer> getEventNpcIds()

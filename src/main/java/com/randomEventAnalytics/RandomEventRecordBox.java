@@ -61,7 +61,7 @@ public class RandomEventRecordBox extends JPanel
 
 	private JPanel buildRandomEventPanel(RandomEventRecord record, boolean isConfirmed)
 	{
-		JLabel randomName = new JLabel(record.npcInfoRecord.npcName);
+		JLabel randomName = new JLabel(RandomEventAnalyticsUtil.getDisplayName(record.npcInfoRecord.npcId, record.npcInfoRecord.npcName));
 		spawnedTimeLabel.setText(panel.shortTimeFormat.format(record.spawnedTime));
 
 		this.setBorder(new EmptyBorder(10, 10, 10, 10));
