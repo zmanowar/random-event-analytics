@@ -43,6 +43,7 @@ import net.runelite.client.task.Schedule;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.OverlayManager;
+import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.Text;
 
@@ -59,6 +60,8 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	private ConfigManager configManager;
 	@Inject
 	private OverlayManager overlayManager;
+	@Inject
+	private InfoBoxManager infoBoxManager;
 	@Inject
 	private RandomEventAnalyticsOverlay overlay;
 	@Inject
@@ -84,6 +87,8 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	private int lastNotificationTick = -RANDOM_EVENT_TIMEOUT;
 	private NavigationButton navButton;
 	private RandomEventRecord unconfirmedStrangePlantRecord;
+	private RandomEventAnalyticsInfoBox infoBox;
+	private BufferedImage baseIcon;
 
 	@Provides
 	RandomEventAnalyticsConfig provideConfig(ConfigManager configManager)
@@ -102,12 +107,15 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	{
 		overlayManager.add(overlay);
 		panel = injector.getInstance(RandomEventAnalyticsPanel.class);
-		final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "random_event_analytics.png");
+		baseIcon = ImageUtil.loadImageResource(getClass(), "random_event_analytics.png");
 
 		navButton =
-			NavigationButton.builder().tooltip("Random Event Analytics").icon(icon).panel(panel).priority(7).build();
+			NavigationButton.builder().tooltip("Random Event Analytics").icon(baseIcon).panel(panel).priority(7).build();
 
 		clientToolbar.addNavigation(navButton);
+
+		infoBox = new RandomEventAnalyticsInfoBox(baseIcon, this, config, timeTracking, client);
+		infoBoxManager.addInfoBox(infoBox);
 
 		if (!this.isLoggedIn())
 		{
@@ -124,6 +132,8 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		lastNotificationTick = 0;
 		clientToolbar.removeNavigation(navButton);
 		overlayManager.remove(overlay);
+		infoBoxManager.removeInfoBox(infoBox);
+		infoBox = null;
 	}
 
 	private boolean isLoggedIn()

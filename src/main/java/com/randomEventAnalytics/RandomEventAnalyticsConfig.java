@@ -55,6 +55,28 @@ public interface RandomEventAnalyticsConfig extends Config
 		return true;
 	}
 
+	@ConfigItem(
+		keyName = "enableInfoBox",
+		name = "Enable InfoBox",
+		description = "Show the Random Events info box.",
+		section = overlaySection
+	)
+	default boolean enableInfoBox()
+	{
+		return false;
+	}
+
+	@ConfigItem(
+		keyName = "enableInfoBoxColor",
+		name = "Color InfoBox Text",
+		description = "Color the info box text based on the current spawn window state.",
+		section = overlaySection
+	)
+	default boolean enableInfoBoxColor()
+	{
+		return true;
+	}
+
 
 	@ConfigItem(
 		keyName = "logTimeFormat",
