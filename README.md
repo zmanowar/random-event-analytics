@@ -16,9 +16,17 @@ The panel features a progress bar representing the next spawn window, a countdow
 
 Hovering over the random events will show more metadata about the event.
 
+### Overlay
+
 ![overlay-example](overlay-example.png)
 
-The overlay displays a countdown until the next eligible spawn window.
+The overlay displays a countdown until the next eligible spawn window, as well as a countdown until the next spawn interval.
+
+### Infobox
+
+![infobox-example](infobox-example.png)
+
+The infobox displays a condensed countdown to the eligible spawn window or the time until the next spawn interval. Hovering over it will display the same information as shown in the overlay.
 
 ## Data Points:
 
