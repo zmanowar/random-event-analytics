@@ -9,15 +9,12 @@ package com.randomEventAnalytics.localstorage;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import javax.inject.Inject;
 import lombok.Getter;
-import static net.runelite.client.RuneLite.RUNELITE_DIR;
+import net.runelite.client.util.Filepath;
 import net.runelite.http.api.RuneLiteAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,46 +26,73 @@ import org.slf4j.LoggerFactory;
 public class RandomEventAnalyticsLocalStorage
 {
 	private static final String FILE_EXTENSION = ".log";
-	private static final File RANDOM_EVENT_RECORD_DIR = new File(RUNELITE_DIR, "random-event-analytics");
 	private static final String RANDOM_EVENTS_FILE = "random-events";
 	private static final Logger log = LoggerFactory.getLogger(RandomEventAnalyticsLocalStorage.class);
-	private File playerFolder;
+	private Filepath pluginDirectory;
+	private Filepath playerFolder;
 	@Getter
 	private int numberOfLoggedEvents = 0;
 	@Getter
-	private String username;
+	private String accountHash;
 
 	@Inject
 	public RandomEventAnalyticsLocalStorage()
 	{
-		RANDOM_EVENT_RECORD_DIR.mkdir();
 	}
 
-
-	public boolean setPlayerUsername(final String username)
+	public void initialize(Filepath pluginDirectory) throws IOException
 	{
-		if (username.equalsIgnoreCase(this.username))
+		this.pluginDirectory = pluginDirectory;
+		pluginDirectory.createDirectories();
+	}
+
+	public boolean setPlayerAccountHash(final String accountHash)
+	{
+		if (pluginDirectory == null)
+		{
+			throw new IllegalStateException("Plugin storage directory has not been initialized");
+		}
+
+		if (accountHash.equalsIgnoreCase(this.accountHash))
 		{
 			return false;
 		}
 
-		playerFolder = new File(RANDOM_EVENT_RECORD_DIR, username);
-		playerFolder.mkdir();
-		this.username = username;
+		try
+		{
+			playerFolder = pluginDirectory.joinSegment(accountHash);
+			playerFolder.createDirectories();
+		}
+		catch (IllegalArgumentException | IOException e)
+		{
+			throw new IllegalStateException("Unable to initialize storage for account " + accountHash, e);
+		}
+		this.accountHash = accountHash;
 		return true;
 	}
 
-	private File getFile(String fileName)
+	private Filepath getFile(String fileName)
 	{
-		return new File(playerFolder, fileName + FILE_EXTENSION);
+		if (playerFolder == null)
+		{
+			throw new IllegalStateException("Player storage directory has not been initialized");
+		}
+
+		return playerFolder.joinSegment(fileName + FILE_EXTENSION);
 	}
 
 	public synchronized ArrayList<RandomEventRecord> loadRandomEventRecords()
 	{
-		final File file = getFile(RANDOM_EVENTS_FILE);
+		final Filepath file = getFile(RANDOM_EVENTS_FILE);
 		final ArrayList<RandomEventRecord> data = new ArrayList<>();
 
-		try (final BufferedReader br = new BufferedReader(new FileReader(file)))
+		if (!file.exists())
+		{
+			numberOfLoggedEvents = 0;
+			return data;
+		}
+
+		try (final BufferedReader br = file.openBufferedReader())
 		{
 			String line;
 			while ((line = br.readLine()) != null)
@@ -82,13 +106,9 @@ public class RandomEventAnalyticsLocalStorage
 			}
 
 		}
-		catch (FileNotFoundException e)
-		{
-			log.debug("File not found: {}", file.getName());
-		}
 		catch (IOException e)
 		{
-			log.warn("IOException for file {}: {}", file.getName(), e.getMessage());
+			log.warn("IOException for file {}: {}", file.getFileName(), e.getMessage());
 		}
 
 		numberOfLoggedEvents = data.size();
@@ -108,13 +128,28 @@ public class RandomEventAnalyticsLocalStorage
 
 	public synchronized boolean renameUsernameFolderToAccountHash(final String username, final long hash)
 	{
-		final File usernameDir = new File(RANDOM_EVENT_RECORD_DIR, username);
+		if (pluginDirectory == null)
+		{
+			throw new IllegalStateException("Plugin storage directory has not been initialized");
+		}
+
+		final Filepath usernameDir;
+		try
+		{
+			usernameDir = pluginDirectory.joinSegment(username);
+		}
+		catch (IllegalArgumentException e)
+		{
+			log.warn("Unable to migrate legacy data directory for username '{}'", username);
+			return false;
+		}
+
 		if (!usernameDir.exists())
 		{
 			return true;
 		}
 
-		final File hashDir = new File(RANDOM_EVENT_RECORD_DIR, String.valueOf(hash));
+		final Filepath hashDir = pluginDirectory.joinSegment(String.valueOf(hash));
 		if (hashDir.exists())
 		{
 			log.warn("Can't rename username folder to account hash as the folder for this account hash already exists" + "." + " This was most likely caused by running RL through the Jagex launcher before the migration code" + " was" + " added");
@@ -122,29 +157,37 @@ public class RandomEventAnalyticsLocalStorage
 			return false;
 		}
 
-		return usernameDir.renameTo(hashDir);
+		try
+		{
+			usernameDir.moveTo(hashDir);
+			return true;
+		}
+		catch (IOException e)
+		{
+			log.warn("Unable to migrate username directory '{}' to account hash {}: {}", username, hash, e.getMessage());
+			return false;
+		}
 	}
 
 	public synchronized boolean addRandomEventRecord(RandomEventRecord rec)
 	{
-		final File randomEventsFile = getFile(RANDOM_EVENTS_FILE);
+		final Filepath randomEventsFile = getFile(RANDOM_EVENTS_FILE);
 
 		// Convert entry to JSON
 		final String dataAsString = RuneLiteAPI.GSON.toJson(rec);
 
 		// Open File in append mode and write new data
-		try
+		try (BufferedWriter file = randomEventsFile.openBufferedWriter(
+			StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.APPEND))
 		{
-			final BufferedWriter file = new BufferedWriter(new FileWriter(String.valueOf(randomEventsFile), true));
 			file.append(dataAsString);
 			file.newLine();
-			file.close();
 			numberOfLoggedEvents += 1;
 			return true;
 		}
 		catch (IOException ioe)
 		{
-			log.warn("Error writing loot data to file {}: {}", randomEventsFile.getName(), ioe.getMessage());
+			log.warn("Error writing loot data to file {}: {}", randomEventsFile.getFileName(), ioe.getMessage());
 			return false;
 		}
 	}

@@ -48,7 +48,10 @@ import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.Text;
 
 @Slf4j
-@PluginDescriptor(name = "Random Event Analytics")
+@PluginDescriptor(
+	name = "Random Event Analytics",
+	internalName = "random-event-analytics",
+	legacyDataDirectory = "random-event-analytics")
 @PluginDependency(XpTrackerPlugin.class)
 public class RandomEventAnalyticsPlugin extends Plugin
 {
@@ -105,6 +108,8 @@ public class RandomEventAnalyticsPlugin extends Plugin
 	@Override
 	protected void startUp() throws Exception
 	{
+		localStorage.initialize(getPluginDirectory());
+
 		overlayManager.add(overlay);
 		panel = injector.getInstance(RandomEventAnalyticsPanel.class);
 		baseIcon = ImageUtil.loadImageResource(getClass(), "random_event_analytics.png");
@@ -121,6 +126,7 @@ public class RandomEventAnalyticsPlugin extends Plugin
 		{
 			return;
 		}
+		initializeCurrentAccount();
 		this.loadConfig();
 		loadPreviousRandomEvents();
 	}
@@ -185,18 +191,12 @@ public class RandomEventAnalyticsPlugin extends Plugin
 			}
 
 			final long hash = client.getAccountHash();
-			if (String.valueOf(hash).equalsIgnoreCase(localStorage.getUsername()))
+			if (String.valueOf(hash).equalsIgnoreCase(localStorage.getAccountHash()))
 			{
 				return;
 			}
 
-			String username = client.getUsername();
-			if (username != null && username.length() > 0)
-			{
-				localStorage.renameUsernameFolderToAccountHash(username, hash);
-			}
-
-			if (localStorage.setPlayerUsername(String.valueOf(hash)))
+			if (initializeCurrentAccount())
 			{
 				this.loadConfig();
 				loadPreviousRandomEvents();
@@ -217,6 +217,18 @@ public class RandomEventAnalyticsPlugin extends Plugin
 			timeTracking.setLoginTime(null);
 			panel.updateEstimation();
 		}
+	}
+
+	private boolean initializeCurrentAccount()
+	{
+		final long hash = client.getAccountHash();
+		final String username = client.getUsername();
+		if (username != null && !username.isEmpty())
+		{
+			localStorage.renameUsernameFolderToAccountHash(username, hash);
+		}
+
+		return localStorage.setPlayerAccountHash(String.valueOf(hash));
 	}
 
 	private Instant getLastRandomSpawnInstant()
