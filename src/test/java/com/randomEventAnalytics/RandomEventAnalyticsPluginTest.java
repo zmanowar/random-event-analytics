@@ -20,6 +20,7 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.plugins.xptracker.XpTrackerService;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.overlay.OverlayManager;
+import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -66,6 +67,10 @@ public class RandomEventAnalyticsPluginTest
 	@Mock
 	@Bind
 	XpTrackerService xpTrackerService;
+
+	@Mock
+	@Bind
+	private InfoBoxManager infoBoxManager;
 
 	@Mock
 	@Bind
